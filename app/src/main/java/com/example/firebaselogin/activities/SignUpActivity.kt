@@ -2,7 +2,6 @@ package com.example.firebaselogin.activities
 
 import android.content.Intent
 import android.os.Bundle
-import android.text.TextUtils
 import android.view.WindowManager
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
@@ -27,6 +26,7 @@ class SignUpActivity : BaseActivity() {
 
         setupActionBar()
 
+        //Listener for the button that signs up the user
         btn_sign_up.setOnClickListener {
             registerUser()
         }
@@ -48,7 +48,7 @@ class SignUpActivity : BaseActivity() {
 
     //Function to register a user to our app using the Firebase
     private fun registerUser() {
-        //Here we get the text from editText and trim the space
+        //Get the text from editTexts and trim the spaces
         val name: String = et_name.text.toString().trim {
                 name ->
             name <= ' '
@@ -62,25 +62,37 @@ class SignUpActivity : BaseActivity() {
             password <= ' '
         }
 
+        //If the information the user gave us passes the validation process
         if (validateForm(name, email, password)) {
             //Show the progress dialog
             showProgressDialog(resources.getString(R.string.please_wait))
+            //Create the user account
             FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener {
                         task ->
-                    //If the registration is successfully done
+                    //If the registration is successfully made (with the Authentication service)
                     if (task.isSuccessful) {
 
-                        //Firebase registered user
+                        //Get the Firebase registered user
                         val firebaseUser: FirebaseUser = task.result!!.user!!
-                        //Registered Email
+                        //Get the registered email
                         val registeredEmail = firebaseUser.email!!
 
+                        //Create a user object according to our model
                         val user = User(firebaseUser.uid, name, registeredEmail)
 
-                        //Call the registerUser function of FirestoreClass to make an entry in the database
+                        //Call the registerUser() function of FirestoreClass to make an entry in the database
+                        //The FirestoreClass is in charge of the database
+                        //and storage communication and manipulation
+                        //We create an extra entry to the firestore database for the user
+                        //on top of the entry to the Authentication service to
+                        //store extra information about our users
                         FirestoreClass().registerUser(this@SignUpActivity, user)
-                    } else {
+                    }
+                    //If the registration with the Authentication service of the Firebase
+                    //(not the firestore database) is not successful
+                    //show the corresponding error snackbar
+                    else {
                         super.showErrorSnackBar(task.exception!!.message!!)
 
                         super.hideProgressDialog()
@@ -89,18 +101,20 @@ class SignUpActivity : BaseActivity() {
         }
     }
 
-    //Function to validate the entries of a new user.
+    //Function to validate the entries of a new user
+    //If any of the necessary data is not provided,
+    //the validation will not be passed and an error snackbar will be shown
     private fun validateForm(name: String, email: String, password: String): Boolean {
         return when {
-            TextUtils.isEmpty(name) -> {
+            name.isEmpty() -> {
                 showErrorSnackBar(resources.getString(R.string.enter_name))
                 false
             }
-            TextUtils.isEmpty(email) -> {
+            email.isEmpty() -> {
                 showErrorSnackBar(resources.getString(R.string.enter_email))
                 false
             }
-            TextUtils.isEmpty(password) -> {
+            password.isEmpty() -> {
                 showErrorSnackBar(resources.getString(R.string.enter_password))
                 false
             }
@@ -110,7 +124,9 @@ class SignUpActivity : BaseActivity() {
         }
     }
 
-    //Function to be called when user is registered successfully and an entry is made in the firestore database.
+    //Function to be called when user is registered successfully
+    //and an entry is made in the firestore database.
+    //THIS FUNCTION IS CALLED INSIDE THE REGISTERUSER() FUNCTION OF THE FIRESTORE CLASS
     fun userRegisteredSuccess() {
 
         Toast.makeText(
@@ -122,9 +138,9 @@ class SignUpActivity : BaseActivity() {
         // Hide the progress dialog
         hideProgressDialog()
 
-        //Here the new user registered is automatically signed-in so we just redirect them to the main menu
+        //The now registered user is automatically signed in so we just redirect them to the main menu
         startActivity(Intent(this@SignUpActivity, MainActivity::class.java))
-        // Finish the Sign-Up Screen
+        //Finish the sign up screen
         finish()
     }
 }

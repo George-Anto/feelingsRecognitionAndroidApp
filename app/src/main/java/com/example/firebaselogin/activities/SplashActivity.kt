@@ -26,26 +26,30 @@ class SplashActivity : AppCompatActivity() {
             WindowManager.LayoutParams.FLAG_FULLSCREEN
         )
 
-        //This is used to get the file from the assets folder and set it to the title textView
+        //Get the custom font file from the assets folder and set it to the title textView
         tv_app_name.typeface = Typeface.createFromAsset(assets, "Kyok-Light.otf")
 
-        //Adding the handler to after the a task after some delay
+        //The code inside the Handler will be executed after a delay (2.5 seconds)
         Handler(Looper.getMainLooper()).postDelayed({
 
-            //Here if the user is signed in once and not signed out again from the app
-            //So next time while coming into the app
-            //we will redirect him to MainScreen or else to the Intro Screen
+            //If the user has already signed in and not signed out,
+            //we redirect them to the MainActivity,
+            //else we redirect them to the IntroActivity
 
             //Get the current user id
             val currentUserID = FirestoreClass().getCurrentUserID()
 
+            //If the id is not empty, there is a user already signed in
             if (currentUserID.isNotEmpty()) {
-                //Start the Main Activity
+                //Start the MainActivity
                 startActivity(Intent(this@SplashActivity, MainActivity::class.java))
-            } else {
-                // Start the Intro Activity
+            }
+            //If the id is empty, there is n user for the moment
+            else {
+                //Start the IntroActivity
                 startActivity(Intent(this@SplashActivity, IntroActivity::class.java))
             }
+            //Finish this activity so the user can not go back to it using the back button
             finish()
         }, 2500) //Here we pass the delay time in milliSeconds after which the splash activity will disappear
     }

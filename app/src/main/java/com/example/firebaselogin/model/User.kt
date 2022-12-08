@@ -1,41 +1,16 @@
 package com.example.firebaselogin.model
 
-import android.os.Parcel
 import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
 
+//Data class to store all the user related info
+//By making this class parcelable we can pass the object
+//from one activity to another using intents (not needed yet)
+@Parcelize
 data class User(
     val id: String = "",
     val name: String = "",
     val email: String = "",
     val image: String = "",
     val mobile: String = "",
-    val fcmToken: String = ""
-) : Parcelable {
-    constructor(source: Parcel) : this(
-        source.readString()!!,
-        source.readString()!!,
-        source.readString()!!,
-        source.readString()!!,
-        source.readString()!!,
-        source.readString()!!
-    )
-
-    override fun describeContents() = 0
-
-    override fun writeToParcel(dest: Parcel, flags: Int) = with(dest) {
-        writeString(id)
-        writeString(name)
-        writeString(email)
-        writeString(image)
-        writeString(mobile)
-        writeString(fcmToken)
-    }
-
-    companion object {
-        @JvmField
-        val CREATOR: Parcelable.Creator<User> = object : Parcelable.Creator<User> {
-            override fun createFromParcel(source: Parcel): User = User(source)
-            override fun newArray(size: Int): Array<User?> = arrayOfNulls(size)
-        }
-    }
-}
+) : Parcelable

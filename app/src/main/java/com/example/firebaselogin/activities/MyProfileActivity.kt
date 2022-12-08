@@ -9,7 +9,6 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
 import android.webkit.MimeTypeMap
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -27,20 +26,21 @@ import java.util.regex.Pattern
 
 class MyProfileActivity : BaseActivity() {
 
-    //Companion object to declare the constants.
+    //Companion object to declare a constant.
     companion object {
         //A unique code for asking the Read Storage Permission using this we will check
-        //and identify in the method onRequestPermissionsResult
+        //and identify if the user gave permission for this action
+        //in the onRequestPermissionsResult() function
         private const val READ_STORAGE_PERMISSION_CODE = 1
     }
 
-    //Global variable for URI of a selected image from phone storage
+    //Field for URI of a selected image from phone storage
     private var selectedImageFileUri: Uri? = null
 
-    //Global variable for user details
+    //Field for user details object
     private lateinit var userDetails: User
 
-    //Global variable for a user profile image URL
+    //Field for user profile image URL
     private var profileImageURL: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,13 +49,18 @@ class MyProfileActivity : BaseActivity() {
 
         setupActionBar()
 
+        //Get the current logged in user details from the Firestore class
+        //that is in charge of the database connectivity and manipulation
         FirestoreClass().loadUserData(this@MyProfileActivity)
 
+        //Set a listener to the image view
         iv_profile_user_image.setOnClickListener {
 
+            //If we already have the permission to access the storage of the user's phone
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                 == PackageManager.PERMISSION_GRANTED
             ) {
+                //Call the method that redirects the user to pick a photo from their gallery
                 showImageChooser()
             } else {
                 //Requests permissions to be granted to this application
@@ -67,12 +72,15 @@ class MyProfileActivity : BaseActivity() {
             }
         }
 
+        //Listener for the update button
         btn_update.setOnClickListener {
 
-            //Here if the image is not selected then update the other details of user
+            //If the user has selected an image, call the function that uploads it to the firebase storage
             if (selectedImageFileUri != null) {
                 uploadUserImage()
-            } else {
+            }
+            //If an image is not selected, then update the other details of the user
+            else {
                 showProgressDialog(resources.getString(R.string.please_wait))
                 //Call a function to update user details in the database
                 updateUserProfileData()
@@ -81,25 +89,22 @@ class MyProfileActivity : BaseActivity() {
     }
 
     //This function will identify the result of runtime permission after
-    // the user allows or deny permission based on the unique code
+    //the user allows or denies the permission based on the unique request code
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        //If the request code matches this specific action
         if (requestCode == READ_STORAGE_PERMISSION_CODE) {
             //If permission is granted
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                //Call the method that redirects the user to pick a photo from their gallery
                 showImageChooser()
             } else {
-                //Displaying another toast if permission is not granted
-                Toast.makeText(
-                    this,
-                    "You denied the permission for storage. " +
-                            "You can also allow it from settings.",
-                    Toast.LENGTH_LONG
-                ).show()
+                //Display the error snackbar if permission is not granted
+                super.showErrorSnackBar(resources.getString(R.string.storage_permission_denied))
             }
         }
     }
@@ -119,23 +124,27 @@ class MyProfileActivity : BaseActivity() {
         toolbar_my_profile_activity.setNavigationOnClickListener { onBackPressed() }
     }
 
-     //Function to set the existing details in UI
+    //Function to set the existing user details in UI
+    //THIS FUNCTION IS CALLED INSIDE THE LOADUSERDATA() FUNCTION OF THE FIRESTORE CLASS
+    //The loadUserData() function is called in the onCreate() function of this activity
     fun setUserDataInUI(user: User) {
 
         //Initialize the user details variable
         userDetails = user
 
+        //Load the user image in the ImageView using a third party library
         Glide
             .with(this@MyProfileActivity)
-            .load(user.image)
+            .load(userDetails.image)
             .centerCrop()
             .placeholder(R.drawable.ic_user_place_holder)
             .into(iv_profile_user_image)
 
-        et_name.setText(user.name)
-        et_email.setText(user.email)
+        et_name.setText(userDetails.name)
+        et_email.setText(userDetails.email)
+        //If the mobile phone is empty, the user has not given any so we show nothing
         if (user.mobile != "") {
-            et_mobile.setText(user.mobile)
+            et_mobile.setText(userDetails.mobile)
         }
     }
 
@@ -150,27 +159,35 @@ class MyProfileActivity : BaseActivity() {
         resultLauncher.launch(galleryIntent)
     }
 
+    //The new way of implementing startActivityForResult method
+    //without using requests codes
+    //The result that we want from the gallery activity we launched is of course an image
     private val resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             result ->
+        //If the result code is OK and the data is not null
         if (result.resultCode == Activity.RESULT_OK && result.data?.data != null) {
 
             try {
-                //The uri of selection image from phone storage
+                //The uri of selected image from the phone storage
                 selectedImageFileUri = result.data!!.data
 
-                //Load the user image in the ImageView
+                //Load the user image in the ImageView using the same library again
                 Glide
                     .with(this@MyProfileActivity)
                     .load(Uri.parse(selectedImageFileUri.toString()))//URI of the image
                     .centerCrop() //Scale type of the image
                     .placeholder(R.drawable.ic_user_place_holder) //A default place holder
                     .into(iv_profile_user_image) //The view in which the image will be loaded
-            } catch (e: IOException) {
+            }
+            //Catch possible exceptions
+            catch (e: IOException) {
                 e.printStackTrace()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-        } else {
+        }
+        //If the result code is not OK or the data are empty, log the error that occurred
+        else {
             Log.e("Error ${result.resultCode}", result.data.toString())
         }
     }
@@ -182,16 +199,21 @@ class MyProfileActivity : BaseActivity() {
 
         if (selectedImageFileUri != null) {
 
-            //Getting the storage reference
-            val sRef: StorageReference = FirebaseStorage.getInstance().reference.child(
-                "USER_IMAGE-" + System.currentTimeMillis() + "." + getFileExtension(
+            //Get the storage reference
+            //We store those images in the cloud storage of the firebase using unique
+            //names for those files from both the name of the user and the current time in millis
+//            val name = if (et_name.text?.isNotEmpty() == true) et_name.text.toString() else userDetails.name
+            val storageRef: StorageReference = FirebaseStorage.getInstance().reference.child(
+                (et_name.text.toString().ifEmpty { userDetails.name }) +
+                        "-IMAGE-" + System.currentTimeMillis() + "." + getFileExtension(
                     selectedImageFileUri
                 )
             )
-            //Adding the file to reference
-            sRef.putFile(selectedImageFileUri!!)
+            //Adding the file to the cloud storage
+            storageRef.putFile(selectedImageFileUri!!)
+                //If the operation was a success
                 .addOnSuccessListener { taskSnapshot ->
-                    // The image upload is success
+                    //Log the download link
                     Log.i(
                         "Firebase Image URL",
                         taskSnapshot.metadata!!.reference!!.downloadUrl.toString()
@@ -201,19 +223,17 @@ class MyProfileActivity : BaseActivity() {
                     taskSnapshot.metadata!!.reference!!.downloadUrl
                         .addOnSuccessListener { uri ->
                             Log.i("Downloadable Image URL", uri.toString())
-                            // assign the image url to the variable.
+                            //Assign the image url to the activity field
                             profileImageURL = uri.toString()
 
-                            // Call a function to update user details in the database.
+                            //Call the function that updates the users details in the database
                             updateUserProfileData()
                         }
                 }
+                //If the image was not uploaded successfully
                 .addOnFailureListener { exception ->
-                    Toast.makeText(
-                        this@MyProfileActivity,
-                        exception.message,
-                        Toast.LENGTH_LONG
-                    ).show()
+                    //Show the error snackbar
+                    super.showErrorSnackBar(exception.message.toString())
 
                     super.hideProgressDialog()
                 }
@@ -225,37 +245,51 @@ class MyProfileActivity : BaseActivity() {
 
         //MimeTypeMap: Two-way map that maps MIME-types to file extensions and vice versa
         //getSingleton(): Get the singleton instance of MimeTypeMap
-        //getExtensionFromMimeType: Return the registered extension for the given MIME type
-        //contentResolver.getType: Return the MIME type of the given content URL
+        //getExtensionFromMimeType(): Return the registered extension for the given MIME type
+        //contentResolver.getType(): Return the MIME type of the given content URL
         return MimeTypeMap.getSingleton().getExtensionFromMimeType(contentResolver.getType(uri!!))
     }
 
     //Function to update the user profile details into the database
     private fun updateUserProfileData() {
 
-        if (!isValidPhoneNumber(et_mobile.text.toString())) {
+        //If the phone number field is not empty and the number provided is not a valid number
+        //display the error snackbar and return
+        if (et_mobile.text.toString().isNotEmpty()  && !isValidPhoneNumber(et_mobile.text.toString())) {
             profileUpdateFailure(resources.getString(R.string.not_valid_phone_number))
             return
         }
 
+        if (et_name.text.toString().isEmpty()) {
+            profileUpdateFailure(resources.getString(R.string.enter_name))
+            return
+        }
+
+        //Create a hashmap object to add the fields that will be updated
         val userHashMap = HashMap<String, Any>()
 
+
+        //If the user has uploaded a new image, add its url to the hashmap
         if (profileImageURL.isNotEmpty() && profileImageURL != userDetails.image) {
             userHashMap[Constants.IMAGE] = profileImageURL
         }
 
+        //If the user has provided a new name, add it to the hashmap
         if (et_name.text.toString() != userDetails.name) {
             userHashMap[Constants.NAME] = et_name.text.toString()
         }
 
+        //If the user has provided a new number, add it to the hashmap
         if (et_mobile.text.toString() != userDetails.mobile) {
             userHashMap[Constants.MOBILE] = et_mobile.text.toString()
         }
 
-        //Update the data in the database
+        //Update the data in the database by calling the corresponding
+        //function of the FirestoreClass and by passing the userHashMap
         FirestoreClass().updateUserProfileData(this@MyProfileActivity, userHashMap)
     }
 
+    //Function that uses a regular expression to validate the phone provided
     private fun isValidPhoneNumber(phone: String): Boolean {
         val expression = "^([0-9+]|\\(\\d{1,3}\\))[0-9\\-. ]{3,15}$"
         val inputString: CharSequence = phone
@@ -265,13 +299,17 @@ class MyProfileActivity : BaseActivity() {
     }
 
     //Function to notify the user profile is updated successfully
+    //THIS FUNCTION IS CALLED INSIDE THE UPDATEUSERPROFILEDATA() FUNCTION OF THE FIRESTORE CLASS
     fun profileUpdateSuccess() {
         super.hideProgressDialog()
 
+        //When the update is done, return to the MainActivity
+        //with an OK result code to display the changes there too
         setResult(Activity.RESULT_OK)
         finish()
     }
 
+    //Function to notify the user profile is could not be updated
     fun profileUpdateFailure(errorMessage: String) {
         super.hideProgressDialog()
 

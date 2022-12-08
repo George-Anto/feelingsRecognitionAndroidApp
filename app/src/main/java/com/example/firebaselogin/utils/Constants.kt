@@ -2,11 +2,11 @@ package com.example.firebaselogin.utils
 
 object Constants {
 
-    //Firebase Constants
-    //This  is used for the collection name for USERS
+    //Firestore Database Constants
+    //users table in the database
     const val USERS: String = "users"
 
-    //Firebase database field names
+    //Fields of the users table in the database
     const val IMAGE: String = "image"
     const val NAME: String = "name"
     const val MOBILE: String = "mobile"

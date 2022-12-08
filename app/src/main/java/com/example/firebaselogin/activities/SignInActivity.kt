@@ -2,7 +2,6 @@ package com.example.firebaselogin.activities
 
 import android.content.Intent
 import android.os.Bundle
-import android.text.TextUtils
 import android.view.WindowManager
 import com.google.firebase.auth.FirebaseAuth
 import com.example.firebaselogin.R
@@ -24,6 +23,7 @@ class SignInActivity : BaseActivity() {
 
         setupActionBar()
 
+        //Listener for the button that signs in the user
         btn_sign_in.setOnClickListener {
             signInRegisteredUser()
         }
@@ -43,9 +43,9 @@ class SignInActivity : BaseActivity() {
         toolbar_sign_in_activity.setNavigationOnClickListener { onBackPressed() }
     }
 
-    //Function for Sign-In using the registered user using the email and password
+    //Function to sign in a registered user using the email and password
     private fun signInRegisteredUser() {
-        //Here we get the text from editText and trim the space
+        //Get the text from editTexts and trim the spaces
         val email: String = et_email.text.toString().trim {
                 email ->
             email <= ' '
@@ -55,17 +55,22 @@ class SignInActivity : BaseActivity() {
             password <= ' '
         }
 
+        //If the email and password pass the validation process
         if (validateForm(email, password)) {
             //Show the progress dialog
             super.showProgressDialog(resources.getString(R.string.please_wait))
 
-            //Sign-In using FirebaseAuth
+            //Sign in using FirebaseAuth
             FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener { task ->
+                    //If the user is logged in successfully
                     if (task.isSuccessful) {
-                        //Calling the FirestoreClass signInUser function to get the data of user from database
+                        //We call the FirestoreClass signInUser() function
+                        //to get the data of the user from the database
                         FirestoreClass().loadUserData(this@SignInActivity)
-                    } else {
+                    }
+                    //If the user could not log in, display the error
+                    else {
                         super.showErrorSnackBar(task.exception!!.message!!)
                         super.hideProgressDialog()
                     }
@@ -74,11 +79,12 @@ class SignInActivity : BaseActivity() {
     }
 
     //Function to validate the entries of the user
+    //If the email or the password is empty, display an appropriate error snackbar message
     private fun validateForm(email: String, password: String): Boolean {
-        return if (TextUtils.isEmpty(email)) {
+        return if (email.isEmpty()) {
             super.showErrorSnackBar(resources.getString(R.string.enter_email))
             false
-        } else if (TextUtils.isEmpty(password)) {
+        } else if (password.isEmpty()) {
             super.showErrorSnackBar(resources.getString(R.string.enter_password))
             false
         } else {
@@ -86,7 +92,8 @@ class SignInActivity : BaseActivity() {
         }
     }
 
-    //Function to get the user details from the firestore database after authentication
+    //Function to send the user to the MainActivity after successful authentication
+    //THIS FUNCTION IS CALLED INSIDE THE LOADUSERDATA() FUNCTION OF THE FIRESTORE CLASS
     fun signInSuccess() {
 
         super.hideProgressDialog()

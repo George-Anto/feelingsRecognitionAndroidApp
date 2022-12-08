@@ -11,9 +11,7 @@ import kotlinx.android.synthetic.main.activity_intro.*
 class IntroActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        //The call the parent constructor
         super.onCreate(savedInstanceState)
-        //This is used to align the xml view to this class
         setContentView(R.layout.activity_intro)
 
         //This is used to hide the status bar and make the splash screen as a full screen activity
@@ -23,16 +21,21 @@ class IntroActivity : AppCompatActivity() {
             WindowManager.LayoutParams.FLAG_FULLSCREEN
         )
 
-        //This is used to get the file from the assets folder and set it to the title textView
+        //This is for the rounded corners of the intro image
+        iv_intro_image.clipToOutline = true
+
+        //Get the custom font file from the assets folder and set it to the title textView
         tv_app_name_intro.typeface = Typeface.createFromAsset(assets, "Kyok-Light.otf")
 
+        //Listener for the button that sends user to the login screen
         btn_sign_in_intro.setOnClickListener {
-            //Launch the sign in screen.
+            //Launch the login screen
             startActivity(Intent(this@IntroActivity, SignInActivity::class.java))
         }
 
+        //Listener for the button that sends user to the sign up screen
         btn_sign_up_intro.setOnClickListener {
-            //Launch the sign up screen.
+            //Launch the sign up screen
             startActivity(Intent(this@IntroActivity, SignUpActivity::class.java))
         }
     }

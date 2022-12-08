@@ -18,13 +18,11 @@ import com.example.firebaselogin.model.User
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 
+//This activity inherits from BaseActivity and can use its functions
 class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        //The call the parent constructor
         super.onCreate(savedInstanceState)
-
-        //This is used to align the xml view to this class
         setContentView(R.layout.activity_main)
 
         setupActionBar()
@@ -32,57 +30,74 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         //Assign the NavigationView.OnNavigationItemSelectedListener to navigation view
         nav_view.setNavigationItemSelectedListener(this)
 
-        //Get the current logged in user details
+        //Get the current logged in user details from the Firestore class
+        //that is in charge of the database connectivity and manipulation
         FirestoreClass().loadUserData(this@MainActivity)
     }
 
+    //Override the onBackPressed() to close the drawer when open
     override fun onBackPressed() {
         if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
             drawer_layout.closeDrawer(GravityCompat.START)
         } else {
-            // A double back press function is added in Base Activity.
+            //Call this method of the BaseActivity to prevent accidental closing of the activity
             super.doubleBackToExit()
         }
     }
 
+    //Function to implement the functionality of the buttons inside of the menu in the drawer
     override fun onNavigationItemSelected(menuItem: MenuItem): Boolean {
+        //If the user presses the My Profile button
         when (menuItem.itemId) {
             R.id.nav_my_profile -> {
-
+                //Launch the corresponding activity
                 resultLauncher.launch(Intent(
                     this@MainActivity,
                     MyProfileActivity::class.java)
                 )
             }
+            //If the user presses the sign out button
             R.id.nav_sign_out -> {
-                //Here sign outs the user from firebase in this device
+                //Sign out the user from firebase in this device
                 FirebaseAuth.getInstance().signOut()
 
-                //Send the user to the intro screen of the application.
+                //Send the user to the intro screen of the application
                 val intent = Intent(this, IntroActivity::class.java)
+                //If the IntroActivity has already started once before,
+                //reopen it and not start a new one
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
                 startActivity(intent)
+                //Close this activity so the user can not access it again, except by logging in again
                 finish()
             }
         }
+        //Close the drawer after the above actions are done
         drawer_layout.closeDrawer(GravityCompat.START)
         return true
     }
 
+    //The new way of implementing startActivityForResult method
+    //without using requests codes
+    //We use activity for result, because the user can change their info in the MyProfileActivity
+    //This activity will be informed for those actions and load the user data once more
     private val resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            //Get the user updated details
+            //Get the user updated details from the database
             FirestoreClass().loadUserData(this@MainActivity)
-        } else {
+        }
+        //If the user presses the back button the resultCode will not be OK and
+        //the else block will run, without having to reach to the database again
+        else {
             Log.e("User Update", "Update Cancelled")
         }
     }
 
-    //A function to setup action bar
+    //Function to setup action bar
     private fun setupActionBar() {
 
         setSupportActionBar(toolbar_main_activity)
+        //Set the icon for the menu (drawer) toggle
         toolbar_main_activity.setNavigationIcon(R.drawable.ic_action_navigation_menu)
 
         toolbar_main_activity.setNavigationOnClickListener {
@@ -90,7 +105,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         }
     }
 
-    //A function for opening and closing the Navigation Drawer
+    //Function for opening and closing the Navigation Drawer (menu)
     private fun toggleDrawer() {
 
         if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
@@ -100,7 +115,10 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         }
     }
 
-    //A function to get the current user details from firebase
+    //Function to get the current user details from firestore database
+    //THIS FUNCTION IS CALLED INSIDE THE LOADUSERDATA() FUNCTION OF THE FIRESTORE CLASS
+    //The loadUserData() function is called in the onCreate() function and when the
+    //user has updated their info in the MyProfileActivity
     fun updateNavigationUserDetails(user: User) {
         //The instance of the header view of the navigation view
         val headerView = nav_view.getHeaderView(0)
@@ -108,7 +126,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         //The instance of the user image of the navigation view
         val navUserImage = headerView.findViewById<ImageView>(R.id.iv_user_image)
 
-        //Load the user image in the ImageView
+        //Load the user image in the ImageView using a third party library
         Glide
             .with(this@MainActivity)
             .load(user.image) //URL of the image
@@ -116,7 +134,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
             .placeholder(R.drawable.ic_user_place_holder) //A default place holder
             .into(navUserImage) //The view in which the image will be loaded
 
-        //The instance of the user name TextView of the navigation view.
+        //The instance of the user name TextView of the navigation view
         val navUsername = headerView.findViewById<TextView>(R.id.tv_username)
         //Set the user name
         navUsername.text = user.name

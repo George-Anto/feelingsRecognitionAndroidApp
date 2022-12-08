@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- The dimensions of the elements in our activities screens -->
     <dimen name="splash_screen_title_text_size">70sp</dimen>
 
     <dimen name="intro_screen_title_text_size">40sp</dimen>
@@ -29,7 +30,6 @@
     <dimen name="authentication_screen_til_marginStartEnd">16dp</dimen>
     <dimen name="et_text_size">16sp</dimen>
     <dimen name="authentication_screen_til_marginTop">20dp</dimen>
-
     <dimen name="authentication_screen_marginTop">60dp</dimen>
 
     <dimen name="progress_dialog_content_padding">10dp</dimen>
@@ -38,7 +38,7 @@
     <dimen name="progress_text_size">16sp</dimen>
 
     <dimen name="height_of_nav_main">300dp</dimen>
-    <dimen name="invisible_view_of_nav_main">130dp</dimen>
+    <dimen name="nav_header_image_margin_top">130dp</dimen>
     <dimen name="nav_image_size">80dp</dimen>
     <dimen name="nav_content_margin_StartEnd">16dp</dimen>
     <dimen name="nav_content_margin_top">5dp</dimen>
@@ -55,4 +55,6 @@
     <dimen name="my_profile_et_email_marginTop">20dp</dimen>
     <dimen name="my_profile_et_mobile_marginTop">20dp</dimen>
     <dimen name="my_profile_btn_update_marginTop">30dp</dimen>
+
+    <dimen name="margin_bottom_for_last_elements">30dp</dimen>
 </resources>

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_height="match_parent"
-    android:layout_width="match_parent">
+    android:layout_width="match_parent"
+    android:background="@drawable/ic_background">
     <LinearLayout xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/ic_background"
         android:orientation="vertical"
         tools:context=".activities.SignInActivity">
 
@@ -103,9 +103,15 @@
                         android:paddingBottom="@dimen/btn_paddingTopBottom"
                         android:text="@string/sign_in"
                         android:textColor="@android:color/white"
-                        android:textSize="@dimen/btn_text_size" />
+                        android:textSize="@dimen/btn_text_size"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
         </LinearLayout>
+
+        <!-- Just to take some space -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_bottom_for_last_elements"/>
     </LinearLayout>
 </ScrollView>
