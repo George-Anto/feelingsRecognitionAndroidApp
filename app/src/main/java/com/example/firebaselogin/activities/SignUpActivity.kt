@@ -3,12 +3,12 @@ package com.example.firebaselogin.activities
 import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
-import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.example.firebaselogin.R
 import com.example.firebaselogin.firebase.FirestoreClass
 import com.example.firebaselogin.model.User
+import com.example.firebaselogin.utils.Constants
 import kotlinx.android.synthetic.main.activity_sign_up.*
 
 class SignUpActivity : BaseActivity() {
@@ -129,17 +129,14 @@ class SignUpActivity : BaseActivity() {
     //THIS FUNCTION IS CALLED INSIDE THE REGISTERUSER() FUNCTION OF THE FIRESTORE CLASS
     fun userRegisteredSuccess() {
 
-        Toast.makeText(
-            this@SignUpActivity,
-            resources.getString(R.string.successfully_registered),
-            Toast.LENGTH_SHORT
-        ).show()
-
         // Hide the progress dialog
         hideProgressDialog()
 
         //The now registered user is automatically signed in so we just redirect them to the main menu
-        startActivity(Intent(this@SignUpActivity, MainActivity::class.java))
+        //We put some extra info to the intent so the MainActivity knows that the SignUpActivity sent it
+        //and we can show a success message (snackbar) to the user
+        startActivity(Intent(this@SignUpActivity, MainActivity::class.java)
+            .putExtra(Constants.SIGN_UP_SUCCESS, true))
         //Finish the sign up screen
         finish()
     }

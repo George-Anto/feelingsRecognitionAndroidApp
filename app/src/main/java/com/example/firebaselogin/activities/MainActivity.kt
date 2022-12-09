@@ -15,6 +15,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.example.firebaselogin.R
 import com.example.firebaselogin.firebase.FirestoreClass
 import com.example.firebaselogin.model.User
+import com.example.firebaselogin.utils.Constants
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 
@@ -24,6 +25,15 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        //If the intent has the extra info that the SignUpActivity only provides
+        //that means that this is a new user and we show them a success message
+        intent.extras.let { data ->
+            if (data != null) {
+                if (data.getBoolean(Constants.SIGN_UP_SUCCESS))
+                    super.showSuccessSnackBar(resources.getString(R.string.successfully_registered))
+            }
+        }
 
         setupActionBar()
 
@@ -83,6 +93,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
     private val resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             result ->
         if (result.resultCode == Activity.RESULT_OK) {
+            super.showSuccessSnackBar(resources.getString(R.string.profile_data_updated_successfully))
             //Get the user updated details from the database
             FirestoreClass().loadUserData(this@MainActivity)
         }

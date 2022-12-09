@@ -9,4 +9,5 @@
     <color name="secondary_text_color">#5B6067</color>
 
     <color name="snackbar_error_color">#F72400</color>
+    <color name="snackbar_success_color">#4CAF50</color>
 </resources>

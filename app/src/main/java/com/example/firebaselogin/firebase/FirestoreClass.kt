@@ -2,7 +2,6 @@ package com.example.firebaselogin.firebase
 
 import android.app.Activity
 import android.util.Log
-import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -122,11 +121,6 @@ class FirestoreClass {
                 //Profile data is updated successfully
                 Log.i(activity.javaClass.simpleName,
                     activity.resources.getString(R.string.profile_data_updated_successfully))
-
-                //Inform the user about the success of the operation
-                Toast.makeText(activity,
-                    activity.resources.getString(R.string.profile_data_updated_successfully),
-                    Toast.LENGTH_SHORT).show()
 
                 //Notify the MyProfileActivity for the success result
                 //The user will be redirected to the MainActivity

@@ -64,7 +64,7 @@ open class BaseActivity : AppCompatActivity() {
             .postDelayed({ doubleBackToExitPressedOnce = false }, 2000)
     }
 
-    //The red snackbar that is displayed to the user when needed
+    //The red snackbar that is displayed to the user when needed (in error events)
     fun showErrorSnackBar(message: String) {
         val snackBar =
                 Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_LONG)
@@ -74,6 +74,20 @@ open class BaseActivity : AppCompatActivity() {
                         this@BaseActivity,
                         R.color.snackbar_error_color
                 )
+        )
+        snackBar.show()
+    }
+
+    //The green snackbar that is displayed to the user when needed
+    fun showSuccessSnackBar(message: String) {
+        val snackBar =
+            Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_LONG)
+        val snackBarView = snackBar.view
+        snackBarView.setBackgroundColor(
+            ContextCompat.getColor(
+                this@BaseActivity,
+                R.color.snackbar_success_color
+            )
         )
         snackBar.show()
     }

@@ -26,7 +26,7 @@ import java.util.regex.Pattern
 
 class MyProfileActivity : BaseActivity() {
 
-    //Companion object to declare a constant.
+    //Companion object to declare a constant
     companion object {
         //A unique code for asking the Read Storage Permission using this we will check
         //and identify if the user gave permission for this action
@@ -202,8 +202,10 @@ class MyProfileActivity : BaseActivity() {
             //Get the storage reference
             //We store those images in the cloud storage of the firebase using unique
             //names for those files from both the name of the user and the current time in millis
-//            val name = if (et_name.text?.isNotEmpty() == true) et_name.text.toString() else userDetails.name
-            val storageRef: StorageReference = FirebaseStorage.getInstance().reference.child(
+            val storageRef: StorageReference = FirebaseStorage.getInstance().reference
+                //The bucket name the photos of the users are stored
+                .child(Constants.USERS_PROFILE_PHOTOS)
+                .child(
                 (et_name.text.toString().ifEmpty { userDetails.name }) +
                         "-IMAGE-" + System.currentTimeMillis() + "." + getFileExtension(
                     selectedImageFileUri
