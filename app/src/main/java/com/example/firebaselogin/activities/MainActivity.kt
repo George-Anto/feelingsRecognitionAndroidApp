@@ -1,13 +1,18 @@
 package com.example.firebaselogin.activities
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import com.bumptech.glide.Glide
 import com.google.android.material.navigation.NavigationView
@@ -18,9 +23,18 @@ import com.example.firebaselogin.model.User
 import com.example.firebaselogin.utils.Constants
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
+import kotlinx.android.synthetic.main.content_main.*
 
 //This activity inherits from BaseActivity and can use its functions
 class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
+
+    //Companion object to declare a constant
+    companion object {
+        //A unique code for asking the Permissions, using this we will check
+        //and identify if the user gave permissions for this action
+        //in the onRequestPermissionsResult() function
+        private const val MULTIPLE_PERMISSIONS_CODE = 2
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +57,11 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         //Get the current logged in user details from the Firestore class
         //that is in charge of the database connectivity and manipulation
         FirestoreClass().loadUserData(this@MainActivity)
+
+        //Listener for the button that requests the permissions
+        btn_main_request_permissions.setOnClickListener {
+            checkPermissions()
+        }
     }
 
     //Override the onBackPressed() to close the drawer when open
@@ -149,5 +168,60 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         val navUsername = headerView.findViewById<TextView>(R.id.tv_username)
         //Set the user name
         navUsername.text = user.name
+    }
+
+    //Function that requests the necessary permissions
+    private fun checkPermissions() {
+        //If we already have the permissions to write to the storage, to use the camera and the microphone
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            == PackageManager.PERMISSION_GRANTED
+            && ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            == PackageManager.PERMISSION_GRANTED
+            && ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            //Call the method that we need
+            // foo()
+            Toast.makeText(this, "All permissions granted!", Toast.LENGTH_LONG).show()
+        } else {
+            //Requests permissions to be granted to this application
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.CAMERA,
+                    Manifest.permission.RECORD_AUDIO
+                ),
+                MULTIPLE_PERMISSIONS_CODE
+            )
+        }
+    }
+
+    //This function will identify the result of runtime permissions after
+    //the user allows or denies the permissions based on the unique request code
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        //If the request code matches this specific action
+        if (requestCode == MULTIPLE_PERMISSIONS_CODE) {
+            //If permissions are granted (all three of them)
+            if (
+                grantResults.isNotEmpty()
+                && grantResults[0] == PackageManager.PERMISSION_GRANTED
+                && grantResults[1] == PackageManager.PERMISSION_GRANTED
+                && grantResults[2] == PackageManager.PERMISSION_GRANTED
+            ) {
+                //Call the method that we need
+                //foo()
+                Toast.makeText(this, "All permissions granted!", Toast.LENGTH_LONG).show()
+            } else {
+                //Display the error snackbar if permissions are not granted
+                //(or) at least one of them
+                super.showErrorSnackBar(resources.getString(R.string.multiple_permissions_denied))
+            }
+        }
     }
 }

@@ -20,6 +20,9 @@
 
     <string name="nav_my_profile">My Profile</string>
     <string name="nav_sign_out">Sign Out</string>
+    <string name="multiple_permissions_denied">You denied some of the necessary permissions.
+        You can also allow them from settings.</string>
+    <string name="request_multiple_permissions">Request Permissions</string>
 
     <string name="mobile">Mobile</string>
     <string name="update">UPDATE</string>

@@ -28,7 +28,7 @@ class MyProfileActivity : BaseActivity() {
 
     //Companion object to declare a constant
     companion object {
-        //A unique code for asking the Read Storage Permission using this we will check
+        //A unique code for asking the Read Storage Permission, using this we will check
         //and identify if the user gave permission for this action
         //in the onRequestPermissionsResult() function
         private const val READ_STORAGE_PERMISSION_CODE = 1
