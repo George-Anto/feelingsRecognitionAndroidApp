@@ -1,32 +1,44 @@
 package com.example.firebaselogin.activities
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.MenuItem
+import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.*
+import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
+import androidx.lifecycle.LifecycleOwner
 import com.bumptech.glide.Glide
-import com.google.android.material.navigation.NavigationView
-import com.google.firebase.auth.FirebaseAuth
 import com.example.firebaselogin.R
 import com.example.firebaselogin.firebase.FirestoreClass
 import com.example.firebaselogin.model.User
 import com.example.firebaselogin.utils.Constants
+import com.google.android.material.navigation.NavigationView
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 import kotlinx.android.synthetic.main.content_main.*
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.Executor
 
 //This activity inherits from BaseActivity and can use its functions
 class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
+
+    private var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>? = null
+    private var videoCapture: VideoCapture? = null
 
     //Companion object to declare a constant
     companion object {
@@ -36,6 +48,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         private const val MULTIPLE_PERMISSIONS_CODE = 2
     }
 
+    @SuppressLint("RestrictedApi")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -58,9 +71,141 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         //that is in charge of the database connectivity and manipulation
         FirestoreClass().loadUserData(this@MainActivity)
 
-        //Listener for the button that requests the permissions
-        btn_main_request_permissions.setOnClickListener {
-            checkPermissions()
+        //Check for the necessary permissions when creating the activity
+        checkPermissions()
+
+        //Listener for the button that starts the recording of the video
+        btn_capture_video.setOnClickListener {
+
+            //If the user now starts the recording of the video
+            if (btn_capture_video.text.toString() == resources.getString(R.string.start_recording)) {
+                //And the videoCapture object is not null,
+                //meaning that all the necessary permissions are given by the user
+                if (videoCapture != null) {
+                    //Start the recording and change the text of the button to "Stop Recording"
+                    btn_capture_video.text = resources.getString(R.string.stop_recording)
+                    //Set the REC indication on so the user knows that the recording has begun
+                    tv_rec.visibility = View.VISIBLE
+                    recordVideo()
+                //If the videoCapture object is null, all the necessary permissions
+                //are not given and we show the corresponding error snackbar
+                } else {
+                    super.showErrorSnackBar(resources.getString(R.string.multiple_permissions_denied))
+                }
+            //If the user has already started recording a video and presses the button again
+            } else {
+                //If the videoCapture object is not null, stop the recording
+                //and change the text of the button to "Start Recording"
+                if (videoCapture != null) {
+                    btn_capture_video.text = resources.getString(R.string.start_recording)
+                    //Set the REC indication off so the user knows that the recording has finished
+                    tv_rec.visibility = View.INVISIBLE
+                    videoCapture?.stopRecording()
+                //Else show the corresponding error snackbar
+                } else {
+                    super.showErrorSnackBar(resources.getString(R.string.multiple_permissions_denied))
+                }
+            }
+        }
+    }
+
+    //Check for the necessary permissions every time the activity restarts
+    override fun onRestart() {
+        previewCamera.setBackgroundResource(R.drawable.ic_camera_background)
+        checkPermissions()
+        super.onRestart()
+    }
+
+    //Initialize the Camera Provider object
+    private fun initializeCamera() {
+        cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+        cameraProviderFuture!!.addListener(
+            {
+                try {
+                    val cameraProvider = cameraProviderFuture!!.get()
+                    //If the camera provider is initialized correctly, start the camera
+                    startCameraX(cameraProvider)
+                }
+                //Else log the error
+                catch (e: ExecutionException) {
+                    e.printStackTrace()
+                } catch (e: InterruptedException) {
+                    e.printStackTrace()
+                }
+            }, getExecutor()
+        )
+    }
+
+    //Helper function to get the MainExecutor
+    private fun getExecutor(): Executor {
+        return ContextCompat.getMainExecutor(this)
+    }
+
+    //Function that starts the camera
+    @SuppressLint("RestrictedApi")
+    private fun startCameraX(cameraProvider: ProcessCameraProvider) {
+        cameraProvider.unbindAll()
+        val cameraSelector = CameraSelector.Builder()
+            //We start the front (selfie) camera of the user's phone
+            //so we can record their face
+            .requireLensFacing(CameraSelector.LENS_FACING_FRONT)
+            .build()
+
+        //Set the preview of the camera so the user can see what the camera will be recording
+        val preview = Preview.Builder().build()
+        preview.setSurfaceProvider(previewCamera.surfaceProvider)
+
+        //Initialize the videoCapture object that we will use in the recordVideo() function
+        videoCapture = VideoCapture.Builder().setVideoFrameRate(30).build()
+
+        //Bind the camera provider with the videoCapture object
+        cameraProvider.bindToLifecycle(
+            (this as LifecycleOwner), cameraSelector, preview, videoCapture
+        )
+    }
+
+    //The function that records the video
+    //We do not ask for permissions in this function se we have to suppress the error that was shown
+    //But before we call this function, we make sure we already have all the necessary permissions
+    @SuppressLint("RestrictedApi", "MissingPermission")
+    private fun recordVideo() {
+        //If the videoCapture is not null, we can proceed with the recording
+        if (videoCapture == null) return
+
+        val timestamp = System.currentTimeMillis()
+        val contentValues = ContentValues()
+        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, timestamp)
+        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
+        //Start the actual recording
+        try {
+            videoCapture!!.startRecording(
+                VideoCapture.OutputFileOptions.Builder(
+                    contentResolver,
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                    contentValues
+                ).build(),
+                getExecutor(),
+                //Save the video to the user's phone
+                object : VideoCapture.OnVideoSavedCallback {
+                    //If the video is saved successfully
+                    override fun onVideoSaved(outputFileResults: VideoCapture.OutputFileResults) {
+                        //Show the corresponding success message
+                        this@MainActivity.showSuccessSnackBar(resources.getString(R.string.video_save_success))
+                    }
+
+                    //If the video saving failed
+                    override fun onError(videoCaptureError: Int, message: String, cause: Throwable?) {
+                        //Show the corresponding error message
+                        this@MainActivity.showErrorSnackBar(resources.getString(R.string.video_save_error))
+                        //And print the error message to the console
+                        Log.e("Video Saving Error", message)
+                    }
+                }
+            )
+        }
+        //If the recording produced an error, log it to the console
+        catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -180,9 +325,8 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
             && ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
             == PackageManager.PERMISSION_GRANTED
         ) {
-            //Call the method that we need
-            // foo()
-            Toast.makeText(this, "All permissions granted!", Toast.LENGTH_LONG).show()
+            //If we have all the necessary permissions, we call the function for the camera initialization
+            initializeCamera()
         } else {
             //Requests permissions to be granted to this application
             ActivityCompat.requestPermissions(
@@ -214,9 +358,9 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                 && grantResults[1] == PackageManager.PERMISSION_GRANTED
                 && grantResults[2] == PackageManager.PERMISSION_GRANTED
             ) {
-                //Call the method that we need
-                //foo()
-                Toast.makeText(this, "All permissions granted!", Toast.LENGTH_LONG).show()
+                //If the user gave all the necessary permissions,
+                //call the function that initializes the camera
+                initializeCamera()
             } else {
                 //Display the error snackbar if permissions are not granted
                 //(or) at least one of them

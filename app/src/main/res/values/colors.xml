@@ -10,4 +10,6 @@
 
     <color name="snackbar_error_color">#F72400</color>
     <color name="snackbar_success_color">#4CAF50</color>
+
+    <color name="red">#F72400</color>
 </resources>

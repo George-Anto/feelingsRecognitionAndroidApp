@@ -27,6 +27,11 @@
     <string name="mobile">Mobile</string>
     <string name="update">UPDATE</string>
     <string name="my_profile">My Profile</string>
+    <string name="start_recording">Start Recording</string>
+    <string name="stop_recording">Stop Recording</string>
+    <string name="video_save_success">Video has been saved successfully.</string>
+    <string name="video_save_error">Error while saving video.</string>
+    <string name="rec">REC 🔴</string>
 
     <string name="enter_name">Please enter a name.</string>
     <string name="enter_email">Please enter an email.</string>
