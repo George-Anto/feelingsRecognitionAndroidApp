@@ -116,6 +116,10 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
     //Check for the necessary permissions every time the activity restarts
     override fun onRestart() {
         previewCamera.setBackgroundResource(R.drawable.ic_camera_background)
+        //Set the REC indication off so the user knows that the recording has finished
+        tv_rec.visibility = View.INVISIBLE
+        //Set the button text to its initial text
+        btn_capture_video.text = resources.getString(R.string.start_recording)
         checkPermissions()
         super.onRestart()
     }
