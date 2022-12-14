@@ -23,15 +23,18 @@
     <string name="multiple_permissions_denied">You denied some of the necessary permissions.
         You can also allow them from settings.</string>
     <string name="request_multiple_permissions">Request Permissions</string>
+    <string name="start_recording">Start Recording</string>
+    <string name="stop_recording">Stop Recording</string>
+    <string name="video_save_locally_success">Video has been saved successfully locally!</string>
+    <string name="video_save_locally_error">Error while saving video locally.</string>
+    <string name="video_cloud_save_success">Video has been uploaded to the cloud successfully!</string>
+    <string name="video_cloud_save_error">Error while uploading video to the cloud.</string>
+    <string name="rec">REC 🔴</string>
 
     <string name="mobile">Mobile</string>
     <string name="update">UPDATE</string>
     <string name="my_profile">My Profile</string>
-    <string name="start_recording">Start Recording</string>
-    <string name="stop_recording">Stop Recording</string>
-    <string name="video_save_success">Video has been saved successfully.</string>
-    <string name="video_save_error">Error while saving video.</string>
-    <string name="rec">REC 🔴</string>
+    <string name="user_profile_update_error">Error while updating profile, please try again later.</string>
 
     <string name="enter_name">Please enter a name.</string>
     <string name="enter_email">Please enter an email.</string>

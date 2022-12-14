@@ -13,4 +13,5 @@ data class User(
     val email: String = "",
     val image: String = "",
     val mobile: String = "",
+    val faceVideos: ArrayList<String> = ArrayList()
 ) : Parcelable

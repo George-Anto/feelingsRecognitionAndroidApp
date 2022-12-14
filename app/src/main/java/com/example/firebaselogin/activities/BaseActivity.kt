@@ -1,8 +1,10 @@
 package com.example.firebaselogin.activities
 
 import android.app.Dialog
+import android.net.Uri
 import android.os.Handler
 import android.os.Looper
+import android.webkit.MimeTypeMap
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -90,5 +92,15 @@ open class BaseActivity : AppCompatActivity() {
             )
         )
         snackBar.show()
+    }
+
+    //Function to get the extension of selected image
+    fun getFileExtension(uri: Uri?): String? {
+
+        //MimeTypeMap: Two-way map that maps MIME-types to file extensions and vice versa
+        //getSingleton(): Get the singleton instance of MimeTypeMap
+        //getExtensionFromMimeType(): Return the registered extension for the given MIME type
+        //contentResolver.getType(): Return the MIME type of the given content URL
+        return MimeTypeMap.getSingleton().getExtensionFromMimeType(contentResolver.getType(uri!!))
     }
 }

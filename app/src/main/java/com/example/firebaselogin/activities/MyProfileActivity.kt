@@ -8,7 +8,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
-import android.webkit.MimeTypeMap
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -201,26 +200,16 @@ class MyProfileActivity : BaseActivity() {
 
             //Get the storage reference
             //We store those images in the cloud storage of the firebase using unique
-            //names for those files from both the name of the user and the current time in millis
+            //names for those files from both the if of the user and the current time in millis
             val storageRef: StorageReference = FirebaseStorage.getInstance().reference
                 //The bucket name the photos of the users are stored
                 .child(Constants.USERS_PROFILE_PHOTOS)
-                .child(
-                (et_name.text.toString().ifEmpty { userDetails.name }) +
-                        "-IMAGE-" + System.currentTimeMillis() + "." + getFileExtension(
-                    selectedImageFileUri
-                )
-            )
+                .child("${FirestoreClass().getCurrentUserID()}-" +
+                        "${System.currentTimeMillis()}.${super.getFileExtension(selectedImageFileUri)}")
             //Adding the file to the cloud storage
             storageRef.putFile(selectedImageFileUri!!)
                 //If the operation was a success
                 .addOnSuccessListener { taskSnapshot ->
-                    //Log the download link
-                    Log.i(
-                        "Firebase Image URL",
-                        taskSnapshot.metadata!!.reference!!.downloadUrl.toString()
-                    )
-
                     //Get the downloadable url from the task snapshot
                     taskSnapshot.metadata!!.reference!!.downloadUrl
                         .addOnSuccessListener { uri ->
@@ -240,16 +229,6 @@ class MyProfileActivity : BaseActivity() {
                     super.hideProgressDialog()
                 }
         }
-    }
-
-    //Function to get the extension of selected image
-    private fun getFileExtension(uri: Uri?): String? {
-
-        //MimeTypeMap: Two-way map that maps MIME-types to file extensions and vice versa
-        //getSingleton(): Get the singleton instance of MimeTypeMap
-        //getExtensionFromMimeType(): Return the registered extension for the given MIME type
-        //contentResolver.getType(): Return the MIME type of the given content URL
-        return MimeTypeMap.getSingleton().getExtensionFromMimeType(contentResolver.getType(uri!!))
     }
 
     //Function to update the user profile details into the database
@@ -314,7 +293,9 @@ class MyProfileActivity : BaseActivity() {
     //Function to notify the user profile is could not be updated
     fun profileUpdateFailure(errorMessage: String) {
         super.hideProgressDialog()
+        super.showErrorSnackBar(resources.getString(R.string.user_profile_update_error))
 
-        super.showErrorSnackBar(errorMessage)
+        //Log the error
+        Log.e("Error while updating the user.", errorMessage)
     }
 }

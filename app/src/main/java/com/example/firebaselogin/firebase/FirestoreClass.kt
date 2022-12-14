@@ -109,7 +109,10 @@ class FirestoreClass {
     }
 
     //Function to update the user profile data into the database
-    fun updateUserProfileData(activity: MyProfileActivity, userHashMap: HashMap<String, Any>) {
+    //If called by the MyProfileActivity, then we update the user's personal data
+    //If called by the MainActivity, then we add a reference to a face video in the storage
+    //that belongs to the that user
+    fun updateUserProfileData(activity: Activity, userHashMap: HashMap<String, Any>) {
         //The table (collection) we want to use
         fireStore.collection(Constants.USERS)
             //The key of the document we want to update
@@ -117,27 +120,38 @@ class FirestoreClass {
             .document(getCurrentUserID())
             //A hashmap of the fields of the user entry which are to be updated
             .update(userHashMap)
+            //If the update was successful
             .addOnSuccessListener {
-                //Profile data is updated successfully
-                Log.i(activity.javaClass.simpleName,
-                    activity.resources.getString(R.string.profile_data_updated_successfully))
-
-                //Notify the MyProfileActivity for the success result
-                //The user will be redirected to the MainActivity
-                activity.profileUpdateSuccess()
+                when(activity) {
+                    //If the MyProfileActivity called it
+                    is MyProfileActivity -> {
+                        //Notify the MyProfileActivity for the success result
+                        //The user will be redirected to the MainActivity
+                        activity.profileUpdateSuccess()
+                    }
+                    //If the MainActivity called it
+                    is MainActivity -> {
+                        //Notify the MainActivity for the success result
+                        activity.videoUploadToUserTableSuccess()
+                    }
+                }
             }
             //If the operation failed
             .addOnFailureListener { e ->
                 val message: String = if (e.message != null) e.message!! else activity.getString(R.string.unexpected_error)
 
-                //Notify the MyProfileActivity for the failure result
-                activity.profileUpdateFailure(message)
-                //Log the error
-                Log.e(
-                    activity.javaClass.simpleName,
-                    "Error while updating the user.",
-                    e
-                )
+               when(activity) {
+                   //If the MyProfileActivity called it
+                   is MyProfileActivity -> {
+                       //Notify the MyProfileActivity for the failure result
+                       activity.profileUpdateFailure(message)
+                   }
+                   //If the MainActivity called it
+                   is MainActivity -> {
+                       //Notify the MainActivity for the failure result
+                       activity.videoUploadToUserTableError(message)
+                   }
+               }
             }
     }
 

@@ -6,6 +6,7 @@ import android.app.Activity
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
@@ -28,6 +29,9 @@ import com.example.firebaselogin.utils.Constants
 import com.google.android.material.navigation.NavigationView
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 import kotlinx.android.synthetic.main.content_main.*
@@ -114,99 +118,6 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         previewCamera.setBackgroundResource(R.drawable.ic_camera_background)
         checkPermissions()
         super.onRestart()
-    }
-
-    //Initialize the Camera Provider object
-    private fun initializeCamera() {
-        cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-        cameraProviderFuture!!.addListener(
-            {
-                try {
-                    val cameraProvider = cameraProviderFuture!!.get()
-                    //If the camera provider is initialized correctly, start the camera
-                    startCameraX(cameraProvider)
-                }
-                //Else log the error
-                catch (e: ExecutionException) {
-                    e.printStackTrace()
-                } catch (e: InterruptedException) {
-                    e.printStackTrace()
-                }
-            }, getExecutor()
-        )
-    }
-
-    //Helper function to get the MainExecutor
-    private fun getExecutor(): Executor {
-        return ContextCompat.getMainExecutor(this)
-    }
-
-    //Function that starts the camera
-    @SuppressLint("RestrictedApi")
-    private fun startCameraX(cameraProvider: ProcessCameraProvider) {
-        cameraProvider.unbindAll()
-        val cameraSelector = CameraSelector.Builder()
-            //We start the front (selfie) camera of the user's phone
-            //so we can record their face
-            .requireLensFacing(CameraSelector.LENS_FACING_FRONT)
-            .build()
-
-        //Set the preview of the camera so the user can see what the camera will be recording
-        val preview = Preview.Builder().build()
-        preview.setSurfaceProvider(previewCamera.surfaceProvider)
-
-        //Initialize the videoCapture object that we will use in the recordVideo() function
-        videoCapture = VideoCapture.Builder().setVideoFrameRate(30).build()
-
-        //Bind the camera provider with the videoCapture object
-        cameraProvider.bindToLifecycle(
-            (this as LifecycleOwner), cameraSelector, preview, videoCapture
-        )
-    }
-
-    //The function that records the video
-    //We do not ask for permissions in this function se we have to suppress the error that was shown
-    //But before we call this function, we make sure we already have all the necessary permissions
-    @SuppressLint("RestrictedApi", "MissingPermission")
-    private fun recordVideo() {
-        //If the videoCapture is not null, we can proceed with the recording
-        if (videoCapture == null) return
-
-        val timestamp = System.currentTimeMillis()
-        val contentValues = ContentValues()
-        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, timestamp)
-        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
-        //Start the actual recording
-        try {
-            videoCapture!!.startRecording(
-                VideoCapture.OutputFileOptions.Builder(
-                    contentResolver,
-                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                    contentValues
-                ).build(),
-                getExecutor(),
-                //Save the video to the user's phone
-                object : VideoCapture.OnVideoSavedCallback {
-                    //If the video is saved successfully
-                    override fun onVideoSaved(outputFileResults: VideoCapture.OutputFileResults) {
-                        //Show the corresponding success message
-                        this@MainActivity.showSuccessSnackBar(resources.getString(R.string.video_save_success))
-                    }
-
-                    //If the video saving failed
-                    override fun onError(videoCaptureError: Int, message: String, cause: Throwable?) {
-                        //Show the corresponding error message
-                        this@MainActivity.showErrorSnackBar(resources.getString(R.string.video_save_error))
-                        //And print the error message to the console
-                        Log.e("Video Saving Error", message)
-                    }
-                }
-            )
-        }
-        //If the recording produced an error, log it to the console
-        catch (e: Exception) {
-            e.printStackTrace()
-        }
     }
 
     //Override the onBackPressed() to close the drawer when open
@@ -313,6 +224,178 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         val navUsername = headerView.findViewById<TextView>(R.id.tv_username)
         //Set the user name
         navUsername.text = user.name
+    }
+
+    //Initialize the Camera Provider object
+    private fun initializeCamera() {
+        cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+        cameraProviderFuture!!.addListener(
+            {
+                try {
+                    val cameraProvider = cameraProviderFuture!!.get()
+                    //If the camera provider is initialized correctly, start the camera
+                    startCameraX(cameraProvider)
+                }
+                //Else log the error
+                catch (e: ExecutionException) {
+                    e.printStackTrace()
+                } catch (e: InterruptedException) {
+                    e.printStackTrace()
+                }
+            }, getExecutor()
+        )
+    }
+
+    //Helper function to get the MainExecutor
+    private fun getExecutor(): Executor {
+        return ContextCompat.getMainExecutor(this)
+    }
+
+    //Function that starts the camera
+    @SuppressLint("RestrictedApi")
+    private fun startCameraX(cameraProvider: ProcessCameraProvider) {
+        cameraProvider.unbindAll()
+        val cameraSelector = CameraSelector.Builder()
+            //We start the front (selfie) camera of the user's phone
+            //so we can record their face
+            .requireLensFacing(CameraSelector.LENS_FACING_FRONT)
+            .build()
+
+        //Set the preview of the camera so the user can see what the camera will be recording
+        val preview = Preview.Builder().build()
+        preview.setSurfaceProvider(previewCamera.surfaceProvider)
+
+        //Initialize the videoCapture object that we will use in the recordVideo() function
+        videoCapture = VideoCapture.Builder().setVideoFrameRate(30).build()
+
+        //Bind the camera provider with the videoCapture object
+        cameraProvider.bindToLifecycle(
+            (this as LifecycleOwner), cameraSelector, preview, videoCapture
+        )
+    }
+
+    //The function that records the video
+    //We do not ask for permissions in this function se we have to suppress the error that was shown
+    //But before we call this function, we make sure we already have all the necessary permissions
+    @SuppressLint("RestrictedApi", "MissingPermission")
+    private fun recordVideo() {
+        //If the videoCapture is not null, we can proceed with the recording
+        if (videoCapture == null) return
+
+        val timestamp = System.currentTimeMillis()
+        val contentValues = ContentValues()
+        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, timestamp)
+        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
+        //Start the actual recording
+        try {
+            videoCapture!!.startRecording(
+                VideoCapture.OutputFileOptions.Builder(
+                    contentResolver,
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                    contentValues
+                ).build(),
+                getExecutor(),
+                //Save the video to the user's phone (locally)
+                object : VideoCapture.OnVideoSavedCallback {
+                    //If the video is saved successfully (locally)
+                    override fun onVideoSaved(outputFileResults: VideoCapture.OutputFileResults) {
+                        //Show the corresponding success message
+//                        super@MainActivity.showSuccessSnackBar(resources.getString(R.string.video_save_locally_success))
+
+                        //Then upload the video to the firebase storage too
+                        uploadVideo(outputFileResults.savedUri)
+                    }
+
+                    //If the video local saving failed
+                    override fun onError(videoCaptureError: Int, message: String, cause: Throwable?) {
+                        //Show the corresponding error message
+                        super@MainActivity.showErrorSnackBar(resources.getString(R.string.video_save_locally_error))
+                        //And print the error message to the console
+                        Log.e("Video Saving Locally Error", message)
+                    }
+                }
+            )
+        }
+        //If the recording produced an error, log it to the console
+        catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    //Function to upload the captured video to the firebase storage
+    private fun uploadVideo(videoUri: Uri?) {
+
+        super.showProgressDialog(resources.getString(R.string.please_wait))
+
+        //If no URI is present, then show an error message to the user
+        if (videoUri == null) {
+            Log.e("No Video URI", "No Video URI detected.")
+            super.hideProgressDialog()
+            super.showErrorSnackBar(resources.getString(R.string.video_cloud_save_error))
+            return
+        }
+
+        //Get the storage reference
+        //We store those videos in the cloud storage of the firebase using unique
+        //names for those files from both the id of the user and the current time in millis
+        val storageRef: StorageReference = FirebaseStorage.getInstance().reference
+            //The bucket name the videos of the users faces are stored
+            .child(Constants.FACES_VIDEOS_BUCKET)
+            .child("${FirestoreClass().getCurrentUserID()}-" +
+                    "${System.currentTimeMillis()}.${super.getFileExtension(videoUri)}")
+        //Adding the file to the cloud storage
+        storageRef.putFile(videoUri)
+            //If the operation was a success
+            .addOnSuccessListener { taskSnapshot ->
+                //Get the downloadable url from the task snapshot
+                taskSnapshot.metadata!!.reference!!.downloadUrl
+                    .addOnSuccessListener { uri ->
+                        Log.i("Downloadable Image URL", uri.toString())
+
+                        //Create a hashmap object to add the reference of the video we just uploaded
+                        //and link it with the current user
+                        val userHashMap = HashMap<String, Any>()
+
+                        //The field of the current user we want to update is the faceVideos ArrayList<String>()
+                        //Because it is an ArrayList, we specify it with the FieldValue.arrayUnion()
+                        userHashMap[Constants.FACE_VIDEOS] = FieldValue.arrayUnion(uri.toString())
+
+                        //Update the data in the database (add the link to the new video) by calling
+                        //the corresponding function of the FirestoreClass and by passing the userHashMap
+                        FirestoreClass().updateUserProfileData(this, userHashMap)
+                    }
+                    //If we could not parse the downloadable url, log the error
+                    .addOnFailureListener {
+                            e ->
+                        Log.e("Downloadable Url Error", e.message.toString())
+                        super.hideProgressDialog()
+                        super.showErrorSnackBar(e.message.toString())
+                    }
+            }
+            //If the image was not uploaded successfully
+            .addOnFailureListener { e ->
+                //Show the error snackbar and also log the error
+                Log.e("Video Upload Error", e.message.toString())
+                super.hideProgressDialog()
+                super.showErrorSnackBar(resources.getString(R.string.video_cloud_save_error))
+            }
+    }
+
+    //If the video was uploaded to the storage successfully and then an entry
+    //of the link of that video is made to the corresponding user (in the firestore database),
+    //then show a success message
+    fun videoUploadToUserTableSuccess() {
+        super.hideProgressDialog()
+        super.showSuccessSnackBar(resources.getString(R.string.video_cloud_save_success))
+    }
+
+    //If the link in the corresponding user is not made in the database,
+    //then show an error message
+    fun videoUploadToUserTableError(errorMessage: String) {
+        super.hideProgressDialog()
+        super.showErrorSnackBar(resources.getString(R.string.video_cloud_save_error))
+        //Log the error
+        Log.e("Error while updating the user.", errorMessage)
     }
 
     //Function that requests the necessary permissions
