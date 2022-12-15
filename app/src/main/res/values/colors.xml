@@ -12,4 +12,5 @@
     <color name="snackbar_success_color">#4CAF50</color>
 
     <color name="red">#F72400</color>
+    <color name="light_gray">#D3D3D3</color>
 </resources>

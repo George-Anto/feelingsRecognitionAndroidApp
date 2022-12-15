@@ -1,55 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
+<ScrollView android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:background="@drawable/ic_background"
-    tools:context=".activities.MainActivity">
+    tools:context=".activities.MainActivity"
+    android:fillViewport="true" >
 
-    <TextView
-        android:id="@+id/tv_rec"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/rec"
-        android:textSize="@dimen/main_rec_size"
-        android:textColor="@color/red"
-        app:layout_constraintBottom_toTopOf="@+id/previewCamera"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.975"
-        android:visibility="invisible"
-        tools:text="REC"/>
+    <androidx.constraintlayout.widget.ConstraintLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-    <androidx.camera.view.PreviewView
-        android:id="@+id/previewCamera"
-        android:layout_width="@dimen/main_camera_view_width"
-        android:layout_height="@dimen/main_camera_view_height"
-        android:layout_weight="40"
-        android:background="@drawable/ic_camera_background"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.8" />
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="@color/light_gray"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="@dimen/main_card_margin_top"
+            android:layout_marginBottom="@dimen/main_card_margin_bottom"
+            android:layout_marginStart="@dimen/main_card_margin_start_end"
+            android:layout_marginEnd="@dimen/main_card_margin_start_end"
+            android:elevation="@dimen/card_view_elevation"
+            app:cardCornerRadius="@dimen/card_view_corner_radius">
 
-    <Button
-        android:id="@+id/btn_capture_video"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/shape_button_rounded"
-        android:foreground="?attr/selectableItemBackground"
-        android:paddingLeft="@dimen/main_record_btn_padding"
-        android:paddingRight="@dimen/main_record_btn_padding"
-        android:text="@string/start_recording"
-        android:textColor="@android:color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.95" />
+            <androidx.constraintlayout.widget.ConstraintLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+                <TextView
+                    android:id="@+id/tv_rec"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/rec"
+                    android:textSize="@dimen/main_rec_size"
+                    android:textColor="@color/red"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toTopOf="@+id/previewCamera"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    android:layout_marginBottom="@dimen/main_rec_margin_bottom"
+                    app:layout_constraintVertical_chainStyle="packed"
+                    android:visibility="invisible"
+                    tools:text="REC" />
+
+                <androidx.camera.view.PreviewView
+                    android:id="@+id/previewCamera"
+                    android:layout_width="@dimen/main_camera_view_width"
+                    android:layout_height="@dimen/main_camera_view_height"
+                    android:background="@drawable/ic_camera_background"
+                    app:layout_constraintTop_toBottomOf="@id/tv_rec"
+                    app:layout_constraintBottom_toTopOf="@id/btn_capture_video"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    android:layout_marginBottom="@dimen/main_camera_view_margin_bottom"/>
+
+                <Button
+                    android:id="@+id/btn_capture_video"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/shape_button_rounded"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:paddingLeft="@dimen/main_btn_record_padding"
+                    android:paddingRight="@dimen/main_btn_record_padding"
+                    android:text="@string/start_recording"
+                    android:textColor="@android:color/white"
+                    app:layout_constraintTop_toBottomOf="@id/previewCamera"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    android:layout_marginBottom="@dimen/main_btn_record_margin_bottom"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </androidx.cardview.widget.CardView>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

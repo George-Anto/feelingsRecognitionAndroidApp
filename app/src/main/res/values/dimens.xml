@@ -48,9 +48,15 @@
     <dimen name="nav_divider_height">0.5dp</dimen>
 
     <dimen name="main_rec_size">30sp</dimen>
-    <dimen name="main_record_btn_padding">30dp</dimen>
+    <dimen name="main_rec_margin_bottom">10dp</dimen>
+    <dimen name="main_btn_record_padding">30dp</dimen>
+    <dimen name="main_btn_record_margin_bottom">25dp</dimen>
+    <dimen name="main_camera_view_margin_bottom">25dp</dimen>
     <dimen name="main_camera_view_width">112dp</dimen>
     <dimen name="main_camera_view_height">200dp</dimen>
+    <dimen name="main_card_margin_top">380dp</dimen>
+    <dimen name="main_card_margin_bottom">20dp</dimen>
+    <dimen name="main_card_margin_start_end">90dp</dimen>
 
     <dimen name="my_profile_screen_content_marginStartEnd">16dp</dimen>
     <dimen name="my_profile_screen_content_marginTopBottom">10dp</dimen>
