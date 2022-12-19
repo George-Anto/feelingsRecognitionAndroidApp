@@ -19,6 +19,7 @@
     <string name="please_wait">Loading&#8230;</string>
 
     <string name="nav_my_profile">My Profile</string>
+    <string name="nav_choose_video">Choose a Video to Watch</string>
     <string name="nav_sign_out">Sign Out</string>
     <string name="multiple_permissions_denied">You denied some of the necessary permissions.
         You can also allow them from settings.</string>
@@ -46,4 +47,6 @@
     <string name="storage_permission_denied">You denied the permission for storage.
         You can also allow it from settings.</string>
     <string name="not_valid_phone_number">Please provide a valid phone number.</string>
+
+    <string name="choose_video">Choose a Video to Watch</string>
 </resources>

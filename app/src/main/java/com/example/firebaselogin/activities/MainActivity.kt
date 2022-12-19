@@ -138,9 +138,15 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
     override fun onNavigationItemSelected(menuItem: MenuItem): Boolean {
         //If the user presses the My Profile button
         when (menuItem.itemId) {
+            R.id.nav_choose_video -> {
+                resultLauncherChooseVideo.launch(Intent
+                    (this@MainActivity,
+                    VideoChooserActivity::class.java)
+                )
+            }
             R.id.nav_my_profile -> {
                 //Launch the corresponding activity
-                resultLauncher.launch(Intent(
+                resultLauncherUpdateUser.launch(Intent(
                     this@MainActivity,
                     MyProfileActivity::class.java)
                 )
@@ -169,7 +175,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
     //without using requests codes
     //We use activity for result, because the user can change their info in the MyProfileActivity
     //This activity will be informed for those actions and load the user data once more
-    private val resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+    private val resultLauncherUpdateUser = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             result ->
         if (result.resultCode == Activity.RESULT_OK) {
             super.showSuccessSnackBar(resources.getString(R.string.profile_data_updated_successfully))
@@ -180,6 +186,20 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         //the else block will run, without having to reach to the database again
         else {
             Log.e("User Update", "Update Cancelled")
+        }
+    }
+
+    private val resultLauncherChooseVideo = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            //super.showSuccessSnackBar(resources.getString(R.string.profile_data_updated_successfully))
+            //Get the user updated details from the database
+            //FirestoreClass().loadUserData(this@MainActivity)
+        }
+        //If the user presses the back button the resultCode will not be OK and
+        //the else block will run, without having to reach to the database again
+        else {
+            Log.e("No Video Chosen", "Video choosing cancelled")
         }
     }
 

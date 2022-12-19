@@ -5,6 +5,8 @@ object Constants {
     //Firestore Database Constants
     //users table in the database
     const val USERS: String = "users"
+    //videos_to_watch table in the database
+    const val VIDEOS_TO_WATCH: String = "videos_to_watch"
 
     //Firestore Database Constants
     //Fields of the users table in the database

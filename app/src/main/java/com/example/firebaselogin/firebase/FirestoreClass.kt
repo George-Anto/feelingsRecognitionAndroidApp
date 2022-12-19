@@ -1,17 +1,21 @@
 package com.example.firebaselogin.firebase
 
 import android.app.Activity
+import android.content.Context
 import android.util.Log
+import android.view.View
+import androidx.recyclerview.widget.GridLayoutManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
-import com.example.firebaselogin.activities.MainActivity
-import com.example.firebaselogin.activities.MyProfileActivity
-import com.example.firebaselogin.activities.SignInActivity
-import com.example.firebaselogin.activities.SignUpActivity
 import com.example.firebaselogin.model.User
 import com.example.firebaselogin.utils.Constants
 import com.example.firebaselogin.R
+import com.example.firebaselogin.activities.*
+import com.example.firebaselogin.adapters.VideosToWatchAdapter
+import com.example.firebaselogin.model.VideoData
+import com.google.firebase.firestore.ktx.toObject
+import kotlinx.android.synthetic.main.activity_video_chooser.*
 
 //Custom class where we add the operations performed for the firestore database
 class FirestoreClass {
@@ -24,7 +28,8 @@ class FirestoreClass {
     fun registerUser(activity: SignUpActivity, userInfo: User) {
 
         //We get the user table
-        fireStore.collection(Constants.USERS)
+        fireStore
+            .collection(Constants.USERS)
             //Document ID of the current user as the key of the entry
             .document(getCurrentUserID())
             //Pass the user object we want to save
@@ -50,7 +55,8 @@ class FirestoreClass {
     fun loadUserData(activity: Activity) {
 
         //We specify the collection (users table) we want the data from
-        fireStore.collection(Constants.USERS)
+        fireStore
+            .collection(Constants.USERS)
             //We specify the key of the document we want to retrieve from the database
             //The key is the id of the currently signed in user
             //We get this id from the Authentication service of the firebase
@@ -114,7 +120,8 @@ class FirestoreClass {
     //that belongs to the that user
     fun updateUserProfileData(activity: Activity, userHashMap: HashMap<String, Any>) {
         //The table (collection) we want to use
-        fireStore.collection(Constants.USERS)
+        fireStore
+            .collection(Constants.USERS)
             //The key of the document we want to update
             //which is the id of the current user retrieved by the Authentication module
             .document(getCurrentUserID())
@@ -169,5 +176,40 @@ class FirestoreClass {
         }
 
         return currentUserID
+    }
+
+    fun loadVideosToUI(activity: VideoChooserActivity) {
+        activity.showProgressDialog(activity.resources.getString(R.string.please_wait))
+
+        val videosData: ArrayList<VideoData> = ArrayList()
+
+        fireStore
+            .collection(Constants.VIDEOS_TO_WATCH)
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    Log.i("Document", "${document.id} => ${document.data}")
+                    videosData.add(document.toObject(VideoData::class.java))
+                }
+
+                if (videosData.size > 0) {
+                    activity.hideProgressDialog()
+                    activity.videos_recycler_view.visibility = View.VISIBLE
+                    activity.tv_no_videos_present.visibility = View.GONE
+                    activity.videos_recycler_view.layoutManager = GridLayoutManager(activity, 2)
+                    activity.videos_recycler_view.setHasFixedSize(true)
+
+                    val adapter = VideosToWatchAdapter(activity, videosData)
+                    activity.videos_recycler_view.adapter = adapter
+                } else {
+                    activity.hideProgressDialog()
+                    activity.videos_recycler_view.visibility = View.GONE
+                    activity.tv_no_videos_present.visibility = View.VISIBLE
+                }
+
+            }
+            .addOnFailureListener { e ->
+                Log.e("Error", "Error getting documents: ", e)
+            }
     }
 }
