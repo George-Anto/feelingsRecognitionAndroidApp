@@ -1,10 +1,7 @@
 package com.example.firebaselogin.firebase
 
 import android.app.Activity
-import android.content.Context
 import android.util.Log
-import android.view.View
-import androidx.recyclerview.widget.GridLayoutManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -12,10 +9,7 @@ import com.example.firebaselogin.model.User
 import com.example.firebaselogin.utils.Constants
 import com.example.firebaselogin.R
 import com.example.firebaselogin.activities.*
-import com.example.firebaselogin.adapters.VideosToWatchAdapter
 import com.example.firebaselogin.model.VideoData
-import com.google.firebase.firestore.ktx.toObject
-import kotlinx.android.synthetic.main.activity_video_chooser.*
 
 //Custom class where we add the operations performed for the firestore database
 class FirestoreClass {
@@ -178,7 +172,7 @@ class FirestoreClass {
         return currentUserID
     }
 
-    fun loadVideosToUI(activity: VideoChooserActivity) {
+    fun getVideos(activity: VideoChooserActivity) {
         activity.showProgressDialog(activity.resources.getString(R.string.please_wait))
 
         val videosData: ArrayList<VideoData> = ArrayList()
@@ -192,21 +186,7 @@ class FirestoreClass {
                     videosData.add(document.toObject(VideoData::class.java))
                 }
 
-                if (videosData.size > 0) {
-                    activity.hideProgressDialog()
-                    activity.videos_recycler_view.visibility = View.VISIBLE
-                    activity.tv_no_videos_present.visibility = View.GONE
-                    activity.videos_recycler_view.layoutManager = GridLayoutManager(activity, 2)
-                    activity.videos_recycler_view.setHasFixedSize(true)
-
-                    val adapter = VideosToWatchAdapter(activity, videosData)
-                    activity.videos_recycler_view.adapter = adapter
-                } else {
-                    activity.hideProgressDialog()
-                    activity.videos_recycler_view.visibility = View.GONE
-                    activity.tv_no_videos_present.visibility = View.VISIBLE
-                }
-
+                if (videosData.size > 0) activity.loadVideosToUI(videosData) else activity.noVideosAvailable()
             }
             .addOnFailureListener { e ->
                 Log.e("Error", "Error getting documents: ", e)
