@@ -25,6 +25,7 @@ import com.bumptech.glide.Glide
 import com.example.firebaselogin.R
 import com.example.firebaselogin.firebase.FirestoreClass
 import com.example.firebaselogin.model.User
+import com.example.firebaselogin.model.VideoData
 import com.example.firebaselogin.utils.Constants
 import com.google.android.material.navigation.NavigationView
 import com.google.common.util.concurrent.ListenableFuture
@@ -189,15 +190,15 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         }
     }
 
-    private val resultLauncherChooseVideo = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+    private val resultLauncherChooseVideo = registerForActivityResult(ActivityResultContracts
+        .StartActivityForResult()) {
             result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            //super.showSuccessSnackBar(resources.getString(R.string.profile_data_updated_successfully))
-            //Get the user updated details from the database
-            //FirestoreClass().loadUserData(this@MainActivity)
+            val videoData = result.data?.getParcelableExtra<VideoData>(Constants.VIDEO_DATA)
+            Log.i("VideoData", videoData.toString())
         }
         //If the user presses the back button the resultCode will not be OK and
-        //the else block will run, without having to reach to the database again
+        //the else block will run, without having loading any video to the screen
         else {
             Log.e("No Video Chosen", "Video choosing cancelled")
         }

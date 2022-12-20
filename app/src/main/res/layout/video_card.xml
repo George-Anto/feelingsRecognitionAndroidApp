@@ -18,7 +18,8 @@
             android:id="@+id/img_video_thumbnail"
             android:scaleType="centerCrop"
             android:layout_width="match_parent"
-            android:layout_height="150dp" />
+            android:layout_height="150dp"
+            android:contentDescription="@string/video_thumbnail" />
 
         <TextView
             android:id="@+id/tv_video_name"

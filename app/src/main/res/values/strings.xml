@@ -49,4 +49,9 @@
     <string name="not_valid_phone_number">Please provide a valid phone number.</string>
 
     <string name="choose_video">Choose a Video to Watch</string>
+    <string name="error_loading_videos">An error occurred while loading the videos,
+        please try again later.</string>
+    <string name="no_videos_available">There are no videos available at the moment.</string>
+    <string name="video_thumbnail">Video Thumbnail</string>
+
 </resources>

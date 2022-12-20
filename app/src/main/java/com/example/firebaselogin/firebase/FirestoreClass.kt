@@ -172,24 +172,35 @@ class FirestoreClass {
         return currentUserID
     }
 
+    //Function to retrieve the data about the available videos that exist in the firestore database
     fun getVideos(activity: VideoChooserActivity) {
         activity.showProgressDialog(activity.resources.getString(R.string.please_wait))
 
+        //Initialize an ArrayList for the videos data
         val videosData: ArrayList<VideoData> = ArrayList()
 
+        //Get all the data from the the videos_to_watch collection of the firestore database
         fireStore
             .collection(Constants.VIDEOS_TO_WATCH)
             .get()
+            //If all the data was retrieved successfully
             .addOnSuccessListener { documents ->
+                //Get each entry (document) of the collection
                 for (document in documents) {
                     Log.i("Document", "${document.id} => ${document.data}")
+                    //Add it to the ArrayList
                     videosData.add(document.toObject(VideoData::class.java))
                 }
 
+                //If there are some videosData, display them to the UI
+                //Else notify the user that no videos were present
                 if (videosData.size > 0) activity.loadVideosToUI(videosData) else activity.noVideosAvailable()
             }
+            //If an error occurred
             .addOnFailureListener { e ->
                 Log.e("Error", "Error getting documents: ", e)
+                //Show an error message
+                activity.showErrorSnackBar(activity.resources.getString(R.string.error_loading_videos))
             }
     }
 }

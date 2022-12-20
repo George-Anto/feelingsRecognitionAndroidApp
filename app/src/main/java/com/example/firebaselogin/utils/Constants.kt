@@ -23,4 +23,6 @@ object Constants {
 
     //The name of an intent extra information
     const val SIGN_UP_SUCCESS = "Sign Up Success"
+    //The name of an intent extra information
+    const val VIDEO_DATA = "Video Data"
 }
