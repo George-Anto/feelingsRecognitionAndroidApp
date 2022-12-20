@@ -54,7 +54,7 @@
     <dimen name="main_camera_view_margin_bottom">25dp</dimen>
     <dimen name="main_camera_view_width">112dp</dimen>
     <dimen name="main_camera_view_height">200dp</dimen>
-    <dimen name="main_card_margin_top">380dp</dimen>
+    <dimen name="main_card_margin_top">0dp</dimen>
     <dimen name="main_card_margin_bottom">20dp</dimen>
     <dimen name="main_card_margin_start_end">90dp</dimen>
 

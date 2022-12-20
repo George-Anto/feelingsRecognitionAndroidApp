@@ -48,7 +48,8 @@
         <activity
             android:name=".activities.MainActivity"
             android:screenOrientation="fullSensor"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar"
+            android:configChanges="orientation|keyboardHidden|screenLayout|screenSize"/>
         <activity
             android:name=".activities.MyProfileActivity"
             android:screenOrientation="fullSensor"

@@ -13,6 +13,7 @@ import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
+import android.widget.MediaController
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.*
@@ -114,6 +115,18 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         }
     }
 
+    //Each time the Activity starts, not with an OK result from the VideoChooserActivity
+    override fun onStart() {
+        super.onStart()
+        //Make the video view invisible when the user has not selected a video to watch
+        //and display the message that prompts them to select one
+        video_player.visibility = View.GONE
+        tv_select_video_to_watch.visibility = View.VISIBLE
+        //Also make the button for the recording invisible and the informing textView visible
+        btn_capture_video.visibility = View.GONE
+        tv_select_a_video_to_start_recording.visibility = View.VISIBLE
+    }
+
     //Check for the necessary permissions every time the activity restarts
     override fun onRestart() {
         previewCamera.setBackgroundResource(R.drawable.ic_camera_background)
@@ -190,17 +203,61 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         }
     }
 
+    //We use activity for result when sending the user to choose a video to watch
+    //when the user chooses a video or uses the back button, this function us executed
     private val resultLauncherChooseVideo = registerForActivityResult(ActivityResultContracts
         .StartActivityForResult()) {
             result ->
+        //When the result code is OK, the user has chosen a video to watch
         if (result.resultCode == Activity.RESULT_OK) {
+            //Get the videoData from the intent
             val videoData = result.data?.getParcelableExtra<VideoData>(Constants.VIDEO_DATA)
+            //Log it to the console
             Log.i("VideoData", videoData.toString())
+
+            //Call the function that loads the video to the UI
+            loadVideoToUI(videoData)
         }
         //If the user presses the back button the resultCode will not be OK and
-        //the else block will run, without having loading any video to the screen
+        //the else block will run, without loading any video to the screen
         else {
             Log.e("No Video Chosen", "Video choosing cancelled")
+        }
+    }
+
+    //Function to load the video to the UI
+    private fun loadVideoToUI(videoData: VideoData?) {
+        //If the data is not null
+        if (videoData != null) {
+
+            //Crete a MediaController instance
+            val mediaController = MediaController(this)
+
+            //Pass the uri to the video view and make it visible
+            video_player.setVideoPath(videoData.uri)
+            video_player.visibility = View.VISIBLE
+            //Erase the massage to select a video to watch
+            tv_select_video_to_watch.visibility = View.GONE
+
+            //Link the mediaController with the video view
+            mediaController.setAnchorView(video_player)
+            video_player.setMediaController(mediaController)
+
+            //Listener for when the video is ready to play
+            video_player.setOnPreparedListener {
+                //Start the video
+                video_player.start()
+
+                //When the video is ready, make the button that starts the recording visible
+                //and the textView invisible
+                btn_capture_video.visibility = View.VISIBLE
+                tv_select_a_video_to_start_recording.visibility = View.GONE
+            }
+
+            //Listener for when the video has ended
+            video_player.setOnCompletionListener {
+                Log.i("VideoCompleted", "The video is over!")
+            }
         }
     }
 

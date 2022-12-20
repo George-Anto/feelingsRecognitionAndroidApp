@@ -16,6 +16,7 @@
         
         <ImageView
             android:id="@+id/img_video_thumbnail"
+            android:background="@drawable/ic_thumbnail_default"
             android:scaleType="centerCrop"
             android:layout_width="match_parent"
             android:layout_height="150dp"
