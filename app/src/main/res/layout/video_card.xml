@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_margin="10dp"
+    android:layout_margin="@dimen/video_card_layout_margin"
     android:elevation="@dimen/card_view_elevation"
     app:cardCornerRadius="@dimen/card_view_corner_radius">
 
@@ -19,7 +19,7 @@
             android:background="@drawable/ic_thumbnail_default"
             android:scaleType="centerCrop"
             android:layout_width="match_parent"
-            android:layout_height="150dp"
+            android:layout_height="@dimen/video_card_image_view_height"
             android:contentDescription="@string/video_thumbnail" />
 
         <TextView
@@ -27,9 +27,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textAlignment="center"
-            android:textSize="18sp"
+            android:textSize="@dimen/video_card_tv_text_size"
             android:textStyle="bold"
-            android:padding="6dp"
+            android:padding="@dimen/video_card_tv_padding"
             tools:text="Video Name"/>
 
     </LinearLayout>

@@ -1,4 +1,4 @@
-package com.example.firebaselogin.model
+package gr.unipi.feelingsrecognition.model
 
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
@@ -13,5 +13,5 @@ data class User(
     val email: String = "",
     val image: String = "",
     val mobile: String = "",
-    val faceVideos: ArrayList<String> = ArrayList()
+    val faceVideos: ArrayList<VideoData> = ArrayList()
 ) : Parcelable

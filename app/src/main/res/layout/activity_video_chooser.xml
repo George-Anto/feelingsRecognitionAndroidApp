@@ -28,23 +28,22 @@
             android:id="@+id/videos_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_margin="10dp"
+            android:layout_margin="@dimen/video_chooser_recycler_view_margin"
             android:visibility="gone"/>
 
         <TextView
             android:id="@+id/tv_no_videos_present"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="50dp"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
+            android:layout_marginTop="@dimen/video_chooser_tv_no_videos_margin_top"
+            android:layout_marginLeft="@dimen/video_chooser_tv_no_videos_margin_left_right"
+            android:layout_marginRight="@dimen/video_chooser_tv_no_videos_margin_left_right"
             android:text="@string/no_videos_available"
             android:textAlignment="center"
             android:textColor="@color/colorAccent"
-            android:textSize="30sp"
+            android:textSize="@dimen/video_chooser_tv_no_videos_text_size"
             android:textStyle="bold"
             android:visibility="gone" />
-
 
     </LinearLayout>
 </ScrollView>

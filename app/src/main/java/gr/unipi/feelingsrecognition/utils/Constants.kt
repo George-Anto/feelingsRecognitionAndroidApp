@@ -1,4 +1,4 @@
-package com.example.firebaselogin.utils
+package gr.unipi.feelingsrecognition.utils
 
 object Constants {
 

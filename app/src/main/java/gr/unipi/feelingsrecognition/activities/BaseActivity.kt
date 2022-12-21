@@ -1,4 +1,4 @@
-package com.example.firebaselogin.activities
+package gr.unipi.feelingsrecognition.activities
 
 import android.app.Dialog
 import android.net.Uri
@@ -9,7 +9,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
-import com.example.firebaselogin.R
+import gr.unipi.feelingsrecognition.R
 import kotlinx.android.synthetic.main.dialog_progress.*
 
 //We created this BaseActivity that inherits from the AppCompatActivity to use it as the

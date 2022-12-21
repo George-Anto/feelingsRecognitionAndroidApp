@@ -1,15 +1,15 @@
-package com.example.firebaselogin.activities
+package gr.unipi.feelingsrecognition.activities
 
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.recyclerview.widget.GridLayoutManager
-import com.example.firebaselogin.R
-import com.example.firebaselogin.adapters.VideosToWatchAdapter
-import com.example.firebaselogin.firebase.FirestoreClass
-import com.example.firebaselogin.model.VideoData
-import com.example.firebaselogin.utils.Constants
+import gr.unipi.feelingsrecognition.R
+import gr.unipi.feelingsrecognition.adapters.VideosToWatchAdapter
+import gr.unipi.feelingsrecognition.firebase.FirestoreClass
+import gr.unipi.feelingsrecognition.model.VideoData
+import gr.unipi.feelingsrecognition.utils.Constants
 import kotlinx.android.synthetic.main.activity_video_chooser.*
 
 class VideoChooserActivity : BaseActivity() {

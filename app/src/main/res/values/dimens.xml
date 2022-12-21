@@ -57,6 +57,7 @@
     <dimen name="main_card_margin_top">0dp</dimen>
     <dimen name="main_card_margin_bottom">20dp</dimen>
     <dimen name="main_card_margin_start_end">90dp</dimen>
+    <dimen name="main_tv_select_video">10dp</dimen>
 
     <dimen name="my_profile_screen_content_marginStartEnd">16dp</dimen>
     <dimen name="my_profile_screen_content_marginTopBottom">10dp</dimen>
@@ -68,4 +69,14 @@
     <dimen name="my_profile_btn_update_marginTop">30dp</dimen>
 
     <dimen name="margin_bottom_for_last_elements">30dp</dimen>
+
+    <dimen name="video_card_layout_margin">10dp</dimen>
+    <dimen name="video_card_image_view_height">150dp</dimen>
+    <dimen name="video_card_tv_text_size">18sp</dimen>
+    <dimen name="video_card_tv_padding">6dp</dimen>
+
+    <dimen name="video_chooser_recycler_view_margin">10dp</dimen>
+    <dimen name="video_chooser_tv_no_videos_margin_top">50dp</dimen>
+    <dimen name="video_chooser_tv_no_videos_margin_left_right">20dp</dimen>
+    <dimen name="video_chooser_tv_no_videos_text_size">30sp</dimen>
 </resources>

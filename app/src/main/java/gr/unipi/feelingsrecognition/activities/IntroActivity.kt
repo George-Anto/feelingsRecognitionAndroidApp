@@ -1,11 +1,11 @@
-package com.example.firebaselogin.activities
+package gr.unipi.feelingsrecognition.activities
 
 import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
-import com.example.firebaselogin.R
+import gr.unipi.feelingsrecognition.R
 import kotlinx.android.synthetic.main.activity_intro.*
 
 class IntroActivity : AppCompatActivity() {

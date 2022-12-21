@@ -1,4 +1,4 @@
-package com.example.firebaselogin.activities
+package gr.unipi.feelingsrecognition.activities
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -8,8 +8,8 @@ import android.os.Handler
 import android.os.Looper
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
-import com.example.firebaselogin.R
-import com.example.firebaselogin.firebase.FirestoreClass
+import gr.unipi.feelingsrecognition.R
+import gr.unipi.feelingsrecognition.firebase.FirestoreClass
 import kotlinx.android.synthetic.main.activity_splash.*
 
 @SuppressLint("CustomSplashScreen")

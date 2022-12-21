@@ -1,4 +1,4 @@
-package com.example.firebaselogin.activities
+package gr.unipi.feelingsrecognition.activities
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -23,28 +23,29 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.lifecycle.LifecycleOwner
 import com.bumptech.glide.Glide
-import com.example.firebaselogin.R
-import com.example.firebaselogin.firebase.FirestoreClass
-import com.example.firebaselogin.model.User
-import com.example.firebaselogin.model.VideoData
-import com.example.firebaselogin.utils.Constants
 import com.google.android.material.navigation.NavigationView
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import gr.unipi.feelingsrecognition.firebase.FirestoreClass
+import gr.unipi.feelingsrecognition.model.VideoData
+import gr.unipi.feelingsrecognition.utils.Constants
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
+import gr.unipi.feelingsrecognition.R
+import gr.unipi.feelingsrecognition.model.User
 
 //This activity inherits from BaseActivity and can use its functions
 class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     private var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>? = null
     private var videoCapture: VideoCapture? = null
+    private var videoData: VideoData? = null
 
     //Companion object to declare a constant
     companion object {
@@ -54,7 +55,6 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         private const val MULTIPLE_PERMISSIONS_CODE = 2
     }
 
-    @SuppressLint("RestrictedApi")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -84,34 +84,10 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         btn_capture_video.setOnClickListener {
 
             //If the user now starts the recording of the video
-            if (btn_capture_video.text.toString() == resources.getString(R.string.start_recording)) {
-                //And the videoCapture object is not null,
-                //meaning that all the necessary permissions are given by the user
-                if (videoCapture != null) {
-                    //Start the recording and change the text of the button to "Stop Recording"
-                    btn_capture_video.text = resources.getString(R.string.stop_recording)
-                    //Set the REC indication on so the user knows that the recording has begun
-                    tv_rec.visibility = View.VISIBLE
-                    recordVideo()
-                //If the videoCapture object is null, all the necessary permissions
-                //are not given and we show the corresponding error snackbar
-                } else {
-                    super.showErrorSnackBar(resources.getString(R.string.multiple_permissions_denied))
-                }
+            if (btn_capture_video.text.toString()
+                == resources.getString(R.string.start_recording)) startRecording()
             //If the user has already started recording a video and presses the button again
-            } else {
-                //If the videoCapture object is not null, stop the recording
-                //and change the text of the button to "Start Recording"
-                if (videoCapture != null) {
-                    btn_capture_video.text = resources.getString(R.string.start_recording)
-                    //Set the REC indication off so the user knows that the recording has finished
-                    tv_rec.visibility = View.INVISIBLE
-                    videoCapture?.stopRecording()
-                //Else show the corresponding error snackbar
-                } else {
-                    super.showErrorSnackBar(resources.getString(R.string.multiple_permissions_denied))
-                }
-            }
+             else stopRecording()
         }
     }
 
@@ -185,6 +161,41 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         return true
     }
 
+    private fun startRecording() {
+        //If the videoCapture object is not null,
+        //meaning that all the necessary permissions are given by the user
+        if (videoCapture != null) {
+            //Start the recording and change the text of the button to "Stop Recording"
+            btn_capture_video.text = resources.getString(R.string.stop_recording)
+            //Change the color of the button to indicate the recording
+            btn_capture_video.setBackgroundResource(R.drawable.shape_button_rounded_color_primary)
+            //Set the REC indication on so the user knows that the recording has begun
+            tv_rec.visibility = View.VISIBLE
+            recordVideo()
+            //If the videoCapture object is null, all the necessary permissions
+            //are not given and we show the corresponding error snackbar
+        } else {
+            super.showErrorSnackBar(resources.getString(R.string.multiple_permissions_denied))
+        }
+    }
+
+    @SuppressLint("RestrictedApi")
+    private fun stopRecording() {
+        //If the videoCapture object is not null, stop the recording
+        //and change the text of the button to "Start Recording"
+        if (videoCapture != null) {
+            btn_capture_video.text = resources.getString(R.string.start_recording)
+            //Change the color of the button to indicate the recording has ended
+            btn_capture_video.setBackgroundResource(R.drawable.shape_button_rounded_color_text_primary)
+            //Set the REC indication off so the user knows that the recording has finished
+            tv_rec.visibility = View.INVISIBLE
+            videoCapture?.stopRecording()
+            //Else show the corresponding error snackbar
+        } else {
+            super.showErrorSnackBar(resources.getString(R.string.multiple_permissions_denied))
+        }
+    }
+
     //The new way of implementing startActivityForResult method
     //without using requests codes
     //We use activity for result, because the user can change their info in the MyProfileActivity
@@ -230,6 +241,9 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         //If the data is not null
         if (videoData != null) {
 
+            //Store it to a field so we can use it anywhere in this activity
+            this.videoData = videoData
+
             //Crete a MediaController instance
             val mediaController = MediaController(this)
 
@@ -256,7 +270,11 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
 
             //Listener for when the video has ended
             video_player.setOnCompletionListener {
-                Log.i("VideoCompleted", "The video is over!")
+
+                //If the user has already started recording a video of themselves
+                //and the video that is watching is over
+                if (btn_capture_video.text.toString() == resources.getString(R.string.stop_recording))
+                    stopRecording()
             }
         }
     }
@@ -438,11 +456,18 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                         //and link it with the current user
                         val userHashMap = HashMap<String, Any>()
 
-                        //The field of the current user we want to update is the faceVideos ArrayList<String>()
-                        //Because it is an ArrayList, we specify it with the FieldValue.arrayUnion()
-                        userHashMap[Constants.FACE_VIDEOS] = FieldValue.arrayUnion(uri.toString())
+                        //If the videoData is not null
+                        //Update the faceVideoLinked property to show to the face video of the user
+                        //that we recorded while the user watched the current video (videoData object)
+                        if (videoData != null) {
+                            videoData!!.faceVideoLinked = uri.toString()
+                        }
 
-                        //Update the data in the database (add the link to the new video) by calling
+                        //The field of the current user we want to update is the faceVideos ArrayList<VideoData>()
+                        //Because it is an ArrayList, we specify it with the FieldValue.arrayUnion()
+                        userHashMap[Constants.FACE_VIDEOS] = FieldValue.arrayUnion(videoData)
+
+                        //Update the data in the database (storing the videoData to the user document) by calling
                         //the corresponding function of the FirestoreClass and by passing the userHashMap
                         FirestoreClass().updateUserProfileData(this, userHashMap)
                     }

@@ -1,4 +1,4 @@
-package com.example.firebaselogin
+package gr.unipi.feelingsrecognition
 
 import org.junit.Test
 

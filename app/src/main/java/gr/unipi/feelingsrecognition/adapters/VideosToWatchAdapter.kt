@@ -1,4 +1,4 @@
-package com.example.firebaselogin.adapters
+package gr.unipi.feelingsrecognition.adapters
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -6,8 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.firebaselogin.R
-import com.example.firebaselogin.model.VideoData
+import gr.unipi.feelingsrecognition.R
+import gr.unipi.feelingsrecognition.model.VideoData
 import kotlinx.android.synthetic.main.video_card.view.*
 
 //The adapter that we use to fill the videos recycler view in the VideoChooserActivity

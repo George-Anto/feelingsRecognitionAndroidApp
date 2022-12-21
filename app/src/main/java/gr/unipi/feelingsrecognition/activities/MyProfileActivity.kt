@@ -1,4 +1,4 @@
-package com.example.firebaselogin.activities
+package gr.unipi.feelingsrecognition.activities
 
 import android.Manifest
 import android.app.Activity
@@ -12,12 +12,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
-import com.example.firebaselogin.R
-import com.example.firebaselogin.firebase.FirestoreClass
-import com.example.firebaselogin.model.User
-import com.example.firebaselogin.utils.Constants
+import gr.unipi.feelingsrecognition.R
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import gr.unipi.feelingsrecognition.firebase.FirestoreClass
+import gr.unipi.feelingsrecognition.model.User
+import gr.unipi.feelingsrecognition.utils.Constants
 import kotlinx.android.synthetic.main.activity_my_profile.*
 import java.io.IOException
 import java.util.regex.Matcher

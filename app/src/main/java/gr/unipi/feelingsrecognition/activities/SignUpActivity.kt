@@ -1,14 +1,14 @@
-package com.example.firebaselogin.activities
+package gr.unipi.feelingsrecognition.activities
 
 import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.example.firebaselogin.R
-import com.example.firebaselogin.firebase.FirestoreClass
-import com.example.firebaselogin.model.User
-import com.example.firebaselogin.utils.Constants
+import gr.unipi.feelingsrecognition.R
+import gr.unipi.feelingsrecognition.firebase.FirestoreClass
+import gr.unipi.feelingsrecognition.model.User
+import gr.unipi.feelingsrecognition.utils.Constants
 import kotlinx.android.synthetic.main.activity_sign_up.*
 
 class SignUpActivity : BaseActivity() {

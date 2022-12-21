@@ -30,7 +30,7 @@
     <string name="video_save_locally_error">Error while saving video locally.</string>
     <string name="video_cloud_save_success">Video has been uploaded to the cloud successfully!</string>
     <string name="video_cloud_save_error">Error while uploading video to the cloud.</string>
-    <string name="rec">REC 🔴</string>
+    <string name="rec">🔴 REC</string>
     <string name="select_a_video_to_watch">Please select a video to watch from the menu.</string>
     <string name="select_a_video_to_start_recording">Select a video to Start Recording</string>
 

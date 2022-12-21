@@ -1,15 +1,15 @@
-package com.example.firebaselogin.firebase
+package gr.unipi.feelingsrecognition.firebase
 
 import android.app.Activity
 import android.util.Log
+import gr.unipi.feelingsrecognition.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
-import com.example.firebaselogin.model.User
-import com.example.firebaselogin.utils.Constants
-import com.example.firebaselogin.R
-import com.example.firebaselogin.activities.*
-import com.example.firebaselogin.model.VideoData
+import gr.unipi.feelingsrecognition.activities.*
+import gr.unipi.feelingsrecognition.model.User
+import gr.unipi.feelingsrecognition.model.VideoData
+import gr.unipi.feelingsrecognition.utils.Constants
 
 //Custom class where we add the operations performed for the firestore database
 class FirestoreClass {

@@ -33,6 +33,35 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:473495347506:android:3d454e1227c458d75af72b",
+        "android_client_info": {
+          "package_name": "gr.unipi.feelingsrecognition"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "473495347506-a2tb1jqu55ddcu7dq4oauul61sops72i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAX29QDZcbGa2H8JwYHvl2Nnwo5PpEJkTw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "473495347506-a2tb1jqu55ddcu7dq4oauul61sops72i.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"
