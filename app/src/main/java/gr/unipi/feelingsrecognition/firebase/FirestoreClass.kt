@@ -179,7 +179,7 @@ class FirestoreClass {
         //Initialize an ArrayList for the videos data
         val videosData: ArrayList<VideoData> = ArrayList()
 
-        //Get all the data from the the videos_to_watch collection of the firestore database
+        //Get all the data from the videos_to_watch collection of the firestore database
         fireStore
             .collection(Constants.VIDEOS_TO_WATCH)
             .get()

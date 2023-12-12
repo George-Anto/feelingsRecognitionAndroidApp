@@ -215,7 +215,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
     }
 
     //We use activity for result when sending the user to choose a video to watch
-    //when the user chooses a video or uses the back button, this function us executed
+    //when the user chooses a video or uses the back button, this function is executed
     private val resultLauncherChooseVideo = registerForActivityResult(ActivityResultContracts
         .StartActivityForResult()) {
             result ->
@@ -250,7 +250,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
             //Pass the uri to the video view and make it visible
             video_player.setVideoPath(videoData.uri)
             video_player.visibility = View.VISIBLE
-            //Erase the massage to select a video to watch
+            //Erase the message to select a video to watch
             tv_select_video_to_watch.visibility = View.GONE
 
             //Link the mediaController with the video view
@@ -272,7 +272,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
             video_player.setOnCompletionListener {
 
                 //If the user has already started recording a video of themselves
-                //and the video that is watching is over
+                //and the video that they are watching is over
                 if (btn_capture_video.text.toString() == resources.getString(R.string.stop_recording))
                     stopRecording()
             }
@@ -425,7 +425,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
     //Function to upload the captured video to the firebase storage
     private fun uploadVideo(videoUri: Uri?) {
 
-        super.showProgressDialog(resources.getString(R.string.please_wait))
+        super.showProgressDialog(resources.getString(R.string.uploading_video))
 
         //If no URI is present, then show an error message to the user
         if (videoUri == null) {
@@ -479,7 +479,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                         super.showErrorSnackBar(e.message.toString())
                     }
             }
-            //If the image was not uploaded successfully
+            //If the video was not uploaded successfully
             .addOnFailureListener { e ->
                 //Show the error snackbar and also log the error
                 Log.e("Video Upload Error", e.message.toString())

@@ -200,7 +200,7 @@ class MyProfileActivity : BaseActivity() {
 
             //Get the storage reference
             //We store those images in the cloud storage of the firebase using unique
-            //names for those files from both the if of the user and the current time in millis
+            //names for those files from both the id of the user and the current time in millis
             val storageRef: StorageReference = FirebaseStorage.getInstance().reference
                 //The bucket name the photos of the users are stored
                 .child(Constants.USERS_PROFILE_PHOTOS)
@@ -290,7 +290,7 @@ class MyProfileActivity : BaseActivity() {
         finish()
     }
 
-    //Function to notify the user profile is could not be updated
+    //Function to notify the user profile could not be updated
     fun profileUpdateFailure(errorMessage: String) {
         super.hideProgressDialog()
         super.showErrorSnackBar(resources.getString(R.string.user_profile_update_error))
