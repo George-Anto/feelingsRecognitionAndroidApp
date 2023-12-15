@@ -16,6 +16,7 @@ import android.widget.ImageView
 import android.widget.MediaController
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.NonNull
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
@@ -29,6 +30,9 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
 import gr.unipi.feelingsrecognition.firebase.FirestoreClass
 import gr.unipi.feelingsrecognition.model.VideoData
 import gr.unipi.feelingsrecognition.utils.Constants
@@ -38,7 +42,16 @@ import kotlinx.android.synthetic.main.content_main.*
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
 import gr.unipi.feelingsrecognition.R
+import gr.unipi.feelingsrecognition.interfaces.YouTubeApiService
 import gr.unipi.feelingsrecognition.model.User
+import gr.unipi.feelingsrecognition.model.VideoDetailsResponse
+import gr.unipi.feelingsrecognition.utils.LoadPropertiesFile
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import java.util.regex.Pattern
 
 //This activity inherits from BaseActivity and can use its functions
 class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -46,6 +59,14 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
     private var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>? = null
     private var videoCapture: VideoCapture? = null
     private var videoData: VideoData? = null
+    private val apiService: YouTubeApiService by lazy {
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://www.googleapis.com/youtube/v3/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        retrofit.create(YouTubeApiService::class.java)
+    }
 
     //Companion object to declare a constant
     companion object {
@@ -63,6 +84,8 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         //that means that this is a new user and we show them a success message
         intent.extras.let { data ->
             if (data != null) {
+                // Is this check the same? Could I use it instead?
+//            data?.let {
                 if (data.getBoolean(Constants.SIGN_UP_SUCCESS))
                     super.showSuccessSnackBar(resources.getString(R.string.successfully_registered))
             }
@@ -101,6 +124,13 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         //Also make the button for the recording invisible and the informing textView visible
         btn_capture_video.visibility = View.GONE
         tv_select_a_video_to_start_recording.visibility = View.VISIBLE
+
+
+
+        // Test for showing youtube videos to the user
+        //It is recommended to add the YouTubePlayerView as a lifecycle observer of its parent Activity
+        lifecycle.addObserver(youtube_video_player)
+        playYoutubeVideo("https://www.youtube.com/watch?v=668nUCeBHyY")
     }
 
     //Check for the necessary permissions every time the activity restarts
@@ -159,6 +189,67 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         //Close the drawer after the above actions are done
         drawer_layout.closeDrawer(GravityCompat.START)
         return true
+    }
+
+    private fun playYoutubeVideo(youtubeVideoUrl: String) {
+        tv_select_video_to_watch.visibility = View.GONE
+        youtube_video_player.visibility = View.VISIBLE
+        youtube_video_player.addYouTubePlayerListener(object : AbstractYouTubePlayerListener() {
+            override fun onReady(@NonNull youTubePlayer: YouTubePlayer) {
+                val videoId = extractVideoId(youtubeVideoUrl)
+                Log.i("Video Id: ", videoId)
+                if (videoId.isNotEmpty()) {
+                    youTubePlayer.loadVideo(videoId, 0f)
+
+                    val call: Call<VideoDetailsResponse> = apiService
+                        .getVideoDetails("snippet", videoId,
+                            LoadPropertiesFile.loadApiKey(this@MainActivity))
+
+                    call.enqueue(object : Callback<VideoDetailsResponse> {
+                        override fun onResponse(
+                            call: Call<VideoDetailsResponse>,
+                            response: Response<VideoDetailsResponse>
+                        ) {
+                            if (response.isSuccessful) {
+                                val videoDetails = response.body()?.items?.get(0)
+                                val videoTitle = videoDetails?.snippet?.title
+                                val videoThumbnail = videoDetails?.snippet?.thumbnails?.default?.url
+
+                                Log.i("Video Title: ", videoTitle ?: "null")
+                                Log.i("Video Thumbnail: ", videoThumbnail?: "null")
+                            }
+                        }
+
+                        override fun onFailure(call: Call<VideoDetailsResponse>, t: Throwable) {
+                            // Handle failure
+                            Log.e("YouTube Data", "YouTube data could not be retrieved")
+                        }
+                    })
+                }
+            }
+
+            override fun onStateChange(
+                youTubePlayer: YouTubePlayer,
+                state: PlayerConstants.PlayerState
+            ) {
+                super.onStateChange(youTubePlayer, state)
+                if (state == PlayerConstants.PlayerState.ENDED) {
+                    //End the recording here
+                }
+            }
+        })
+    }
+
+    private fun extractVideoId(videoUrl: String): String {
+        val pattern = Pattern.compile(Constants.YOUTUBE_ID_REG_EX)
+        val matcher = pattern.matcher(videoUrl)
+
+        return if (matcher.find()) {
+            matcher.group()
+        } else {
+            // Handle invalid URL or show an error to the user
+            ""
+        }
     }
 
     private fun startRecording() {

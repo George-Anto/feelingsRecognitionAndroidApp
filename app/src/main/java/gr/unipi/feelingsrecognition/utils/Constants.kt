@@ -25,4 +25,8 @@ object Constants {
     const val SIGN_UP_SUCCESS = "Sign Up Success"
     //The name of an intent extra information
     const val VIDEO_DATA = "Video Data"
+
+    const val  YOUTUBE_ID_REG_EX = "(?<=watch\\?v=|/videos/|embed\\/|youtu.be\\/|\\/v\\/|\\/e\\/|" +
+            "watch\\?v%3D|watch\\?feature=player_embedded&v=|%2Fvideos%2F|embed%\u200C\u200C2F|youtu." +
+            "be%2F|%2Fv%2F)[^#\\&\\?\\n]*"
 }

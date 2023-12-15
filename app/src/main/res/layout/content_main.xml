@@ -32,6 +32,12 @@
                 android:layout_height="197dp"
                 android:visibility="gone"/>
 
+            <com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
+                android:id="@+id/youtube_video_player"
+                android:layout_width="350dp"
+                android:layout_height="197dp"
+                android:visibility="gone" />
+
             <TextView
                 android:id="@+id/tv_select_video_to_watch"
                 android:layout_width="match_parent"
