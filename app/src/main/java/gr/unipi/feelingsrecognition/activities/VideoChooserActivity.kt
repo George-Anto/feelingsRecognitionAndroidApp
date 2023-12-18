@@ -3,7 +3,9 @@ package gr.unipi.feelingsrecognition.activities
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
+import android.webkit.URLUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import gr.unipi.feelingsrecognition.R
 import gr.unipi.feelingsrecognition.adapters.VideosToWatchAdapter
@@ -23,6 +25,26 @@ class VideoChooserActivity : BaseActivity() {
         //Use the function in the firestore class that retrieves
         //all the available videos from the firebase
         FirestoreClass().getVideos(this)
+
+        //Listener for the button that lets the user watch a youtube video
+        btn_watch_youtube_video.setOnClickListener {
+
+            //Get the video url from editTexts and trim the spaces
+            val youtubeUrl: String = et_youtube_url.text.toString().trim {
+                    youtubeUrl ->
+                youtubeUrl <= ' '
+            }
+
+            //Check that the user input is a valid url and we can extract the video id
+            //If this is not the case and the validation is not passed, the process terminates
+            if (!URLUtil.isValidUrl(youtubeUrl) || super.extractVideoId(youtubeUrl).isEmpty()) {
+                super.showErrorSnackBar(resources.getString(R.string.not_valid_youtube_url))
+                return@setOnClickListener
+            }
+
+            setResult(Activity.RESULT_OK, Intent().putExtra(Constants.YOUTUBE_URL, youtubeUrl))
+            finish()
+        }
     }
 
     //Function to setup the action bar

@@ -33,6 +33,7 @@ import com.google.firebase.storage.StorageReference
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.YouTubePlayerListener
 import gr.unipi.feelingsrecognition.firebase.FirestoreClass
 import gr.unipi.feelingsrecognition.model.VideoData
 import gr.unipi.feelingsrecognition.utils.Constants
@@ -51,7 +52,6 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.util.regex.Pattern
 
 //This activity inherits from BaseActivity and can use its functions
 class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -61,12 +61,13 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
     private var videoData: VideoData? = null
     private val apiService: YouTubeApiService by lazy {
         val retrofit = Retrofit.Builder()
-            .baseUrl("https://www.googleapis.com/youtube/v3/")
+            .baseUrl(Constants.YOUTUBE_BASE_API_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
         retrofit.create(YouTubeApiService::class.java)
     }
+    private var youtubePlayerListener: YouTubePlayerListener? = null
 
     //Companion object to declare a constant
     companion object {
@@ -103,6 +104,9 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         //Check for the necessary permissions when creating the activity
         checkPermissions()
 
+        // TODO Make the start of the recording of the user automatic after they choose a video to watch
+        // TODO Also make the stop recording also automatic when the video is finished
+        // TODO Add comments to the new code related to the youtube videos
         //Listener for the button that starts the recording of the video
         btn_capture_video.setOnClickListener {
 
@@ -125,12 +129,13 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         btn_capture_video.visibility = View.GONE
         tv_select_a_video_to_start_recording.visibility = View.VISIBLE
 
+        // Check if a youtube url string is present in the intent
+        val youtubeUrl = intent.getStringExtra(Constants.YOUTUBE_URL)
 
-
-        // Test for showing youtube videos to the user
-        //It is recommended to add the YouTubePlayerView as a lifecycle observer of its parent Activity
-        lifecycle.addObserver(youtube_video_player)
-        playYoutubeVideo("https://www.youtube.com/watch?v=668nUCeBHyY")
+        // Use the url to load and play the video if it's present
+        if (!youtubeUrl.isNullOrEmpty()) {
+            playYoutubeVideo(youtubeUrl)
+        }
     }
 
     //Check for the necessary permissions every time the activity restarts
@@ -158,11 +163,19 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
     override fun onNavigationItemSelected(menuItem: MenuItem): Boolean {
         //If the user presses the My Profile button
         when (menuItem.itemId) {
-            R.id.nav_choose_video -> {
+            R.id.nav_choose_video_from_list -> {
                 resultLauncherChooseVideo.launch(Intent
                     (this@MainActivity,
                     VideoChooserActivity::class.java)
                 )
+            }
+            R.id.nav_choose_video_from_youtube -> {
+                //Send the user to the youtube video chooser screen screen
+                startActivity(Intent(this, YoutubeVideoChooserActivity::class.java))
+                //Finish this activity so when the user returns here,
+                //the activity will load from the start
+                //We need this to load the youtube video property to the ui
+                finish()
             }
             R.id.nav_my_profile -> {
                 //Launch the corresponding activity
@@ -191,10 +204,13 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         return true
     }
 
+    //A test url: "https://www.youtube.com/watch?v=668nUCeBHyY"
+    //Another test url: "https://www.youtube.com/watch?v=fLeJJPxua3E"
     private fun playYoutubeVideo(youtubeVideoUrl: String) {
+        lifecycle.addObserver(youtube_video_player)
         tv_select_video_to_watch.visibility = View.GONE
         youtube_video_player.visibility = View.VISIBLE
-        youtube_video_player.addYouTubePlayerListener(object : AbstractYouTubePlayerListener() {
+        youtubePlayerListener = object : AbstractYouTubePlayerListener() {
             override fun onReady(@NonNull youTubePlayer: YouTubePlayer) {
                 val videoId = extractVideoId(youtubeVideoUrl)
                 Log.i("Video Id: ", videoId)
@@ -202,21 +218,25 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                     youTubePlayer.loadVideo(videoId, 0f)
 
                     val call: Call<VideoDetailsResponse> = apiService
-                        .getVideoDetails("snippet", videoId,
-                            LoadPropertiesFile.loadApiKey(this@MainActivity))
+                        .getVideoDetails(
+                            "snippet", videoId,
+                            LoadPropertiesFile.loadApiKey(this@MainActivity)
+                        )
 
                     call.enqueue(object : Callback<VideoDetailsResponse> {
                         override fun onResponse(
                             call: Call<VideoDetailsResponse>,
                             response: Response<VideoDetailsResponse>
                         ) {
-                            if (response.isSuccessful) {
+                            if (response.isSuccessful && response.body()?.items?.isEmpty() == false) {
                                 val videoDetails = response.body()?.items?.get(0)
                                 val videoTitle = videoDetails?.snippet?.title
                                 val videoThumbnail = videoDetails?.snippet?.thumbnails?.default?.url
 
                                 Log.i("Video Title: ", videoTitle ?: "null")
-                                Log.i("Video Thumbnail: ", videoThumbnail?: "null")
+                                Log.i("Video Thumbnail: ", videoThumbnail ?: "null")
+                            } else if (response.body()?.items?.isEmpty() == true) {
+                                super@MainActivity.showErrorSnackBar(resources.getString(R.string.not_valid_youtube_url))
                             }
                         }
 
@@ -235,21 +255,12 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                 super.onStateChange(youTubePlayer, state)
                 if (state == PlayerConstants.PlayerState.ENDED) {
                     //End the recording here
+                    Log.i("Youtube Video Ended", "Youtube Video Ended")
                 }
             }
-        })
-    }
-
-    private fun extractVideoId(videoUrl: String): String {
-        val pattern = Pattern.compile(Constants.YOUTUBE_ID_REG_EX)
-        val matcher = pattern.matcher(videoUrl)
-
-        return if (matcher.find()) {
-            matcher.group()
-        } else {
-            // Handle invalid URL or show an error to the user
-            ""
         }
+        //Add the listener to the youtube_video_player
+        youtube_video_player.addYouTubePlayerListener(youtubePlayerListener!!)
     }
 
     private fun startRecording() {
@@ -647,6 +658,16 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                 //(or) at least one of them
                 super.showErrorSnackBar(resources.getString(R.string.multiple_permissions_denied))
             }
+        }
+    }
+
+    //Clean the youtube_video_player when the activity is finished
+    override fun onDestroy() {
+        super.onDestroy()
+        youtube_video_player.release()
+        //Remove the existing YouTubePlayerListener
+        if (youtubePlayerListener != null) {
+            youtube_video_player.removeYouTubePlayerListener(youtubePlayerListener!!)
         }
     }
 }

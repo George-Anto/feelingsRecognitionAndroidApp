@@ -9,6 +9,7 @@
         <entry key="..\:/Users/georg/AndroidStudioProjects/FirebaseLogin/app/src/main/res/drawable/ic_launcher_background.xml" value="0.102" />
         <entry key="..\:/Users/georg/AndroidStudioProjects/FirebaseLogin/app/src/main/res/drawable/ic_video_chooser.xml" value="0.1" />
         <entry key="..\:/Users/georg/AndroidStudioProjects/FirebaseLogin/app/src/main/res/drawable/ic_white_color_back_24dp.xml" value="0.102" />
+        <entry key="..\:/Users/georg/AndroidStudioProjects/FirebaseLogin/app/src/main/res/drawable/ic_youtube_video_chooser.xml" value="0.1" />
         <entry key="..\:/Users/georg/AndroidStudioProjects/FirebaseLogin/app/src/main/res/drawable/nav_header_main_background.xml" value="0.102" />
         <entry key="..\:/Users/georg/AndroidStudioProjects/FirebaseLogin/app/src/main/res/drawable/shape_button_rounded.xml" value="0.102" />
         <entry key="..\:/Users/georg/AndroidStudioProjects/FirebaseLogin/app/src/main/res/drawable/white_border_shape_button_rounded.xml" value="0.102" />
@@ -19,6 +20,7 @@
         <entry key="..\:/Users/georg/AndroidStudioProjects/FirebaseLogin/app/src/main/res/layout/activity_sign_in.xml" value="0.14990942028985507" />
         <entry key="..\:/Users/georg/AndroidStudioProjects/FirebaseLogin/app/src/main/res/layout/activity_sign_up.xml" value="0.14990942028985507" />
         <entry key="..\:/Users/georg/AndroidStudioProjects/FirebaseLogin/app/src/main/res/layout/activity_video_chooser.xml" value="0.1" />
+        <entry key="..\:/Users/georg/AndroidStudioProjects/FirebaseLogin/app/src/main/res/layout/activity_youtube_video_chooser.xml" value="0.14990942028985507" />
         <entry key="..\:/Users/georg/AndroidStudioProjects/FirebaseLogin/app/src/main/res/layout/app_bar_main.xml" value="0.14990942028985507" />
         <entry key="..\:/Users/georg/AndroidStudioProjects/FirebaseLogin/app/src/main/res/layout/content_main.xml" value="0.1" />
         <entry key="..\:/Users/georg/AndroidStudioProjects/FirebaseLogin/app/src/main/res/layout/dialog_progress.xml" value="0.1" />

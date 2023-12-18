@@ -8,6 +8,7 @@
     <LinearLayout xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:orientation="vertical"
         tools:context=".activities.VideoChooserActivity">
 
@@ -23,6 +24,57 @@
                 android:background="?attr/colorPrimary"
                 app:popupTheme="@style/AppTheme.PopupOverlay" />
         </com.google.android.material.appbar.AppBarLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textInputLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_youtube_url"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/enter_youtube_url"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <Button
+            android:id="@+id/btn_watch_youtube_video"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/shape_button_rounded_color_primary"
+            android:foreground="?attr/selectableItemBackground"
+            android:paddingLeft="@dimen/watch_video_btn_padding"
+            android:paddingRight="@dimen/watch_video_btn_padding"
+            android:text="@string/watch_youtube_video"
+            android:textColor="@android:color/white"
+            android:layout_marginTop="@dimen/watch_video_btn_margin_top"
+            android:layout_marginBottom="20dp"/>
+
+        <!-- Divider line -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="5dp"
+            android:background="#A9A9A9"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+        />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/our_selection_videos_margin_top"
+            android:layout_marginLeft="@dimen/our_selection_videos_tv_margin_left_right"
+            android:layout_marginRight="@dimen/our_selection_videos_tv_margin_left_right"
+            android:text="@string/our_selection_videos"
+            android:textAlignment="center"
+            android:textColor="@color/colorAccent"
+            android:textSize="@dimen/our_selection_videos_text_size"
+            android:textStyle="bold" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/videos_recycler_view"

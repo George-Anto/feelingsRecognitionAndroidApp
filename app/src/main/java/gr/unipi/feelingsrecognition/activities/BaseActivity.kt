@@ -10,7 +10,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
 import gr.unipi.feelingsrecognition.R
+import gr.unipi.feelingsrecognition.utils.Constants
 import kotlinx.android.synthetic.main.dialog_progress.*
+import java.util.regex.Pattern
 
 //We created this BaseActivity that inherits from the AppCompatActivity to use it as the
 //activity some of the others activities in our app will inherit from
@@ -102,5 +104,17 @@ open class BaseActivity : AppCompatActivity() {
         //getExtensionFromMimeType(): Return the registered extension for the given MIME type
         //contentResolver.getType(): Return the MIME type of the given content URL
         return MimeTypeMap.getSingleton().getExtensionFromMimeType(contentResolver.getType(uri!!))
+    }
+
+    //Function to extract the video id of a youtube url
+    fun extractVideoId(videoUrl: String): String {
+        val pattern = Pattern.compile(Constants.YOUTUBE_ID_REG_EX)
+        val matcher = pattern.matcher(videoUrl)
+
+        return if (matcher.find()) {
+            matcher.group()
+        } else {
+            ""
+        }
     }
 }
