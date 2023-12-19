@@ -20,8 +20,7 @@
     <string name="uploading_video">Uploading video&#8230;</string>
 
     <string name="nav_my_profile">My Profile</string>
-    <string name="nav_choose_video_from_list">Choose a Video from our List</string>
-    <string name="nav_choose_video_from_youtube">Select a Youtube Video</string>
+    <string name="nav_choose_video">Choose a Video to Watch</string>
     <string name="nav_sign_out">Sign Out</string>
     <string name="multiple_permissions_denied">You denied some of the necessary permissions.
         You can also allow them from settings.</string>
@@ -33,7 +32,7 @@
     <string name="video_cloud_save_success">Video has been uploaded to the cloud successfully!</string>
     <string name="video_cloud_save_error">Error while uploading video to the cloud.</string>
     <string name="rec">🔴 REC</string>
-    <string name="not_valid_youtube_url">This is not a valid YouTube url</string>
+    <string name="not_valid_youtube_url">This is not a valid YouTube video url</string>
     <string name="select_a_video_to_watch">Please select a video to watch from the menu.</string>
     <string name="select_a_video_to_start_recording">Select a video to Start Recording</string>
 
@@ -59,7 +58,6 @@
         please try again later.</string>
     <string name="no_videos_available">There are no videos available at the moment.</string>
     <string name="video_thumbnail">Video Thumbnail</string>
-
     <string name="watch_youtube_video">Watch YouTube Video</string>
     <string name="enter_youtube_url">Enter the url of a YouTube video</string>
     <string name="choose_youtube_video">Choose a YouTube Video to Watch</string>

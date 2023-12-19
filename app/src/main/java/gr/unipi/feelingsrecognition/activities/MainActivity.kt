@@ -118,7 +118,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         }
     }
 
-    //Each time the Activity starts, not with an OK result from the VideoChooserActivity
+    //Each time the Activity starts
     override fun onStart() {
         super.onStart()
         //Make the video view invisible when the user has not selected a video to watch
@@ -129,13 +129,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         btn_capture_video.visibility = View.GONE
         tv_select_a_video_to_start_recording.visibility = View.VISIBLE
 
-        // Check if a youtube url string is present in the intent
-        val youtubeUrl = intent.getStringExtra(Constants.YOUTUBE_URL)
-
-        // Use the url to load and play the video if it's present
-        if (!youtubeUrl.isNullOrEmpty()) {
-            playYoutubeVideo(youtubeUrl)
-        }
+        loadVideoIfPresent()
     }
 
     //Check for the necessary permissions every time the activity restarts
@@ -159,24 +153,41 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         }
     }
 
+    //Function to setup action bar
+    private fun setupActionBar() {
+
+        setSupportActionBar(toolbar_main_activity)
+        //Set the icon for the menu (drawer) toggle
+        toolbar_main_activity.setNavigationIcon(R.drawable.ic_action_navigation_menu)
+
+        toolbar_main_activity.setNavigationOnClickListener {
+            toggleDrawer()
+        }
+    }
+
+    //Function for opening and closing the Navigation Drawer (menu)
+    private fun toggleDrawer() {
+
+        if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+            drawer_layout.closeDrawer(GravityCompat.START)
+        } else {
+            drawer_layout.openDrawer(GravityCompat.START)
+        }
+    }
+
     //Function to implement the functionality of the buttons inside of the menu in the drawer
     override fun onNavigationItemSelected(menuItem: MenuItem): Boolean {
-        //If the user presses the My Profile button
+        //If the user presses the Choose a Video to Watch button
         when (menuItem.itemId) {
             R.id.nav_choose_video_from_list -> {
-                resultLauncherChooseVideo.launch(Intent
-                    (this@MainActivity,
-                    VideoChooserActivity::class.java)
-                )
-            }
-            R.id.nav_choose_video_from_youtube -> {
-                //Send the user to the youtube video chooser screen screen
-                startActivity(Intent(this, YoutubeVideoChooserActivity::class.java))
+                //Send the user to the Video Chooser Activity screen
+                startActivity(Intent(this, VideoChooserActivity::class.java))
                 //Finish this activity so when the user returns here,
                 //the activity will load from the start
                 //We need this to load the youtube video property to the ui
                 finish()
             }
+            //If the user presses the My Profile button
             R.id.nav_my_profile -> {
                 //Launch the corresponding activity
                 resultLauncherUpdateUser.launch(Intent(
@@ -202,6 +213,24 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         //Close the drawer after the above actions are done
         drawer_layout.closeDrawer(GravityCompat.START)
         return true
+    }
+
+    private fun loadVideoIfPresent() {
+        // Check if a youtube url string is present in the intent
+        val youtubeUrl = intent?.getStringExtra(Constants.YOUTUBE_URL)
+        // Use the url to load and play the video if it's present
+        if (!youtubeUrl.isNullOrEmpty()) {
+            playYoutubeVideo(youtubeUrl)
+        }
+
+        // Check if a videoData object is present in the intent
+        val videoData = intent?.getParcelableExtra<VideoData>(Constants.VIDEO_DATA)
+        if (videoData !== null) {
+            //Log it to the console
+            Log.i(Constants.VIDEO_DATA, videoData.toString())
+            //Call the function that loads the video to the UI
+            loadVideoToUI(videoData)
+        }
     }
 
     //A test url: "https://www.youtube.com/watch?v=668nUCeBHyY"
@@ -235,6 +264,17 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
 
                                 Log.i("Video Title: ", videoTitle ?: "null")
                                 Log.i("Video Thumbnail: ", videoThumbnail ?: "null")
+
+                                //When the video is ready, make the button that starts the recording visible
+                                //and the textView invisible
+                                btn_capture_video.visibility = View.VISIBLE
+                                tv_select_a_video_to_start_recording.visibility = View.GONE
+
+                                val videoData = VideoData(videoId, youtubeVideoUrl, videoTitle!!, videoThumbnail!!)
+
+                                //Store it to a field so we can use it anywhere in this activity
+                                this@MainActivity.videoData = videoData
+
                             } else if (response.body()?.items?.isEmpty() == true) {
                                 super@MainActivity.showErrorSnackBar(resources.getString(R.string.not_valid_youtube_url))
                             }
@@ -254,8 +294,13 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
             ) {
                 super.onStateChange(youTubePlayer, state)
                 if (state == PlayerConstants.PlayerState.ENDED) {
-                    //End the recording here
                     Log.i("Youtube Video Ended", "Youtube Video Ended")
+
+                    //If the user has already started recording a video of themselves
+                    //and the video that they are watching is over
+                    //End the recording here
+                    if (btn_capture_video.text.toString() == resources.getString(R.string.stop_recording))
+                        stopRecording()
                 }
             }
         }
@@ -316,28 +361,6 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         }
     }
 
-    //We use activity for result when sending the user to choose a video to watch
-    //when the user chooses a video or uses the back button, this function is executed
-    private val resultLauncherChooseVideo = registerForActivityResult(ActivityResultContracts
-        .StartActivityForResult()) {
-            result ->
-        //When the result code is OK, the user has chosen a video to watch
-        if (result.resultCode == Activity.RESULT_OK) {
-            //Get the videoData from the intent
-            val videoData = result.data?.getParcelableExtra<VideoData>(Constants.VIDEO_DATA)
-            //Log it to the console
-            Log.i("VideoData", videoData.toString())
-
-            //Call the function that loads the video to the UI
-            loadVideoToUI(videoData)
-        }
-        //If the user presses the back button the resultCode will not be OK and
-        //the else block will run, without loading any video to the screen
-        else {
-            Log.e("No Video Chosen", "Video choosing cancelled")
-        }
-    }
-
     //Function to load the video to the UI
     private fun loadVideoToUI(videoData: VideoData?) {
         //If the data is not null
@@ -378,28 +401,6 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                 if (btn_capture_video.text.toString() == resources.getString(R.string.stop_recording))
                     stopRecording()
             }
-        }
-    }
-
-    //Function to setup action bar
-    private fun setupActionBar() {
-
-        setSupportActionBar(toolbar_main_activity)
-        //Set the icon for the menu (drawer) toggle
-        toolbar_main_activity.setNavigationIcon(R.drawable.ic_action_navigation_menu)
-
-        toolbar_main_activity.setNavigationOnClickListener {
-            toggleDrawer()
-        }
-    }
-
-    //Function for opening and closing the Navigation Drawer (menu)
-    private fun toggleDrawer() {
-
-        if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
-            drawer_layout.closeDrawer(GravityCompat.START)
-        } else {
-            drawer_layout.openDrawer(GravityCompat.START)
         }
     }
 
@@ -552,7 +553,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                 //Get the downloadable url from the task snapshot
                 taskSnapshot.metadata!!.reference!!.downloadUrl
                     .addOnSuccessListener { uri ->
-                        Log.i("Downloadable Image URL", uri.toString())
+                        Log.i("Downloadable Video URL", uri.toString())
 
                         //Create a hashmap object to add the reference of the video we just uploaded
                         //and link it with the current user

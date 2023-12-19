@@ -57,10 +57,6 @@
             android:name=".activities.VideoChooserActivity"
             android:screenOrientation="fullSensor"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".activities.YoutubeVideoChooserActivity"
-            android:screenOrientation="fullSensor"
-            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

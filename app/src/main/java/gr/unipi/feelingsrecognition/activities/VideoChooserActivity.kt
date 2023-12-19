@@ -1,9 +1,7 @@
 package gr.unipi.feelingsrecognition.activities
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.webkit.URLUtil
 import androidx.recyclerview.widget.GridLayoutManager
@@ -27,24 +25,12 @@ class VideoChooserActivity : BaseActivity() {
         FirestoreClass().getVideos(this)
 
         //Listener for the button that lets the user watch a youtube video
-        btn_watch_youtube_video.setOnClickListener {
+        btn_watch_youtube_video.setOnClickListener { enterYoutubeUrl() }
+    }
 
-            //Get the video url from editTexts and trim the spaces
-            val youtubeUrl: String = et_youtube_url.text.toString().trim {
-                    youtubeUrl ->
-                youtubeUrl <= ' '
-            }
-
-            //Check that the user input is a valid url and we can extract the video id
-            //If this is not the case and the validation is not passed, the process terminates
-            if (!URLUtil.isValidUrl(youtubeUrl) || super.extractVideoId(youtubeUrl).isEmpty()) {
-                super.showErrorSnackBar(resources.getString(R.string.not_valid_youtube_url))
-                return@setOnClickListener
-            }
-
-            setResult(Activity.RESULT_OK, Intent().putExtra(Constants.YOUTUBE_URL, youtubeUrl))
-            finish()
-        }
+    override fun onBackPressed() {
+        startActivity(Intent(this, MainActivity::class.java))
+        finish()
     }
 
     //Function to setup the action bar
@@ -60,6 +46,28 @@ class VideoChooserActivity : BaseActivity() {
         }
 
         toolbar_video_chooser_activity.setNavigationOnClickListener { onBackPressed() }
+    }
+
+    private fun enterYoutubeUrl() {
+        //Get the video url from editTexts and trim the spaces
+        val youtubeUrl: String = et_youtube_url.text.toString().trim {
+                youtubeUrl ->
+            youtubeUrl <= ' '
+        }
+
+        //Check that the user input is a valid url and we can extract the video id
+        //If this is not the case and the validation is not passed, the process terminates
+        if (!URLUtil.isValidUrl(youtubeUrl) || super.extractVideoId(youtubeUrl).isEmpty()) {
+            super@VideoChooserActivity
+                .showErrorSnackBar(resources.getString(R.string.not_valid_youtube_url))
+            return
+        }
+
+        //Open the Main Activity and send it the url of the youtube video the user inserted
+        val intent = Intent(this@VideoChooserActivity, MainActivity::class.java)
+        intent.putExtra(Constants.YOUTUBE_URL, youtubeUrl)
+        startActivity(intent)
+        finish()
     }
 
     //Function that is called in the getVideos() function of the Firestore class
@@ -83,9 +91,10 @@ class VideoChooserActivity : BaseActivity() {
             override fun onClick(position: Int, model: VideoData) {
 
                 //When the user clicks inside of a video card, they will be redirected to the
-                //MainActivity (that started this Activity with a startActivityForResult) and
-                //we also pass the videoData object (model) to the MainActivity
-                setResult(Activity.RESULT_OK, Intent().putExtra(Constants.VIDEO_DATA, model))
+                //MainActivity and we also pass the videoData object (model) to the MainActivity
+                val intent = Intent(this@VideoChooserActivity, MainActivity::class.java)
+                intent.putExtra(Constants.VIDEO_DATA, model)
+                startActivity(intent)
                 finish()
             }
         })
