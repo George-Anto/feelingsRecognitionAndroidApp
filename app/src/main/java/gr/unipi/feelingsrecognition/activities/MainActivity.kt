@@ -52,6 +52,8 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.*
+import kotlin.collections.HashMap
 
 //This activity inherits from BaseActivity and can use its functions
 class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -59,12 +61,15 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
     private var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>? = null
     private var videoCapture: VideoCapture? = null
     private var videoData: VideoData? = null
+    //The youtube service that we use to load the youtube video
     private val apiService: YouTubeApiService by lazy {
         val retrofit = Retrofit.Builder()
             .baseUrl(Constants.YOUTUBE_BASE_API_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
+        //Create an implementation of the YouTubeApiService
+        //interface using the configured Retrofit instance
         retrofit.create(YouTubeApiService::class.java)
     }
     private var youtubePlayerListener: YouTubePlayerListener? = null
@@ -105,8 +110,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         checkPermissions()
 
         // TODO Make the start of the recording of the user automatic after they choose a video to watch
-        // TODO Also make the stop recording also automatic when the video is finished
-        // TODO Add comments to the new code related to the youtube videos
+        // TODO Make the videos disappear after the user comes back from the user profile activity
         //Listener for the button that starts the recording of the video
         btn_capture_video.setOnClickListener {
 
@@ -121,15 +125,22 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
     //Each time the Activity starts
     override fun onStart() {
         super.onStart()
-        //Make the video view invisible when the user has not selected a video to watch
-        //and display the message that prompts them to select one
-        video_player.visibility = View.GONE
-        tv_select_video_to_watch.visibility = View.VISIBLE
-        //Also make the button for the recording invisible and the informing textView visible
-        btn_capture_video.visibility = View.GONE
-        tv_select_a_video_to_start_recording.visibility = View.VISIBLE
 
-        loadVideoIfPresent()
+        //Check if a youtube url string is present in the intent
+        val youtubeUrl = intent?.getStringExtra(Constants.YOUTUBE_URL)
+        // Use the url to load and play the video if it's present
+        if (!youtubeUrl.isNullOrEmpty()) {
+            playYoutubeVideo(youtubeUrl)
+        }
+
+        //Check if a videoData object is present in the intent
+        val videoData = intent?.getParcelableExtra<VideoData>(Constants.VIDEO_DATA)
+        if (videoData !== null) {
+            //Log it to the console
+            Log.i(Constants.VIDEO_DATA, videoData.toString())
+            //Call the function that loads the video to the UI
+            loadVideoToUI(videoData)
+        }
     }
 
     //Check for the necessary permissions every time the activity restarts
@@ -215,53 +226,47 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         return true
     }
 
-    private fun loadVideoIfPresent() {
-        // Check if a youtube url string is present in the intent
-        val youtubeUrl = intent?.getStringExtra(Constants.YOUTUBE_URL)
-        // Use the url to load and play the video if it's present
-        if (!youtubeUrl.isNullOrEmpty()) {
-            playYoutubeVideo(youtubeUrl)
-        }
-
-        // Check if a videoData object is present in the intent
-        val videoData = intent?.getParcelableExtra<VideoData>(Constants.VIDEO_DATA)
-        if (videoData !== null) {
-            //Log it to the console
-            Log.i(Constants.VIDEO_DATA, videoData.toString())
-            //Call the function that loads the video to the UI
-            loadVideoToUI(videoData)
-        }
-    }
-
     //A test url: "https://www.youtube.com/watch?v=668nUCeBHyY"
     //Another test url: "https://www.youtube.com/watch?v=fLeJJPxua3E"
     private fun playYoutubeVideo(youtubeVideoUrl: String) {
         lifecycle.addObserver(youtube_video_player)
         tv_select_video_to_watch.visibility = View.GONE
         youtube_video_player.visibility = View.VISIBLE
+        //Create a listener for the youtube video
         youtubePlayerListener = object : AbstractYouTubePlayerListener() {
+
+            //When the video is ready
             override fun onReady(@NonNull youTubePlayer: YouTubePlayer) {
+                //Extract the video id
                 val videoId = extractVideoId(youtubeVideoUrl)
                 Log.i("Video Id: ", videoId)
+                //If there is a video id, play the video
                 if (videoId.isNotEmpty()) {
                     youTubePlayer.loadVideo(videoId, 0f)
 
+                    //Create the http call that we use to get the metadata for that youtube video
                     val call: Call<VideoDetailsResponse> = apiService
                         .getVideoDetails(
-                            "snippet", videoId,
+                            Constants.SNIPPET, videoId,
+                            //Get the api key from the properties file in our file system
                             LoadPropertiesFile.loadApiKey(this@MainActivity)
                         )
 
+                    //Send the http call to the youtube api
                     call.enqueue(object : Callback<VideoDetailsResponse> {
+                        //When we get a response
                         override fun onResponse(
                             call: Call<VideoDetailsResponse>,
                             response: Response<VideoDetailsResponse>
                         ) {
+                            //If is was successful and there are actual data
                             if (response.isSuccessful && response.body()?.items?.isEmpty() == false) {
+                                //Get the data that we need
                                 val videoDetails = response.body()?.items?.get(0)
                                 val videoTitle = videoDetails?.snippet?.title
                                 val videoThumbnail = videoDetails?.snippet?.thumbnails?.default?.url
 
+                                //Log them
                                 Log.i("Video Title: ", videoTitle ?: "null")
                                 Log.i("Video Thumbnail: ", videoThumbnail ?: "null")
 
@@ -270,19 +275,28 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                                 btn_capture_video.visibility = View.VISIBLE
                                 tv_select_a_video_to_start_recording.visibility = View.GONE
 
-                                val videoData = VideoData(videoId, youtubeVideoUrl, videoTitle!!, videoThumbnail!!)
+                                //Create the videoData object from data that we retrieved from the api
+                                val videoData = VideoData(videoId, youtubeVideoUrl, videoTitle!!, videoThumbnail!!,videoType = Constants.YOUTUBE_VIDEO_TYPE)
+                                Log.i(Constants.VIDEO_DATA, videoData.toString())
 
                                 //Store it to a field so we can use it anywhere in this activity
                                 this@MainActivity.videoData = videoData
 
+                            //If there were no data, show an error message to the user
+                            //Send the user back to the VideoChooserActivity
+                            //after a small delay to choose again
                             } else if (response.body()?.items?.isEmpty() == true) {
                                 super@MainActivity.showErrorSnackBar(resources.getString(R.string.not_valid_youtube_url))
+                                sendUserToVideoChooserActivityWithSomeDelay()
                             }
                         }
 
+                        //If we get no response from the youtube api, show an error message to the user
+                        //Send the user back to the VideoChooserActivity after a small delay to choose again
                         override fun onFailure(call: Call<VideoDetailsResponse>, t: Throwable) {
-                            // Handle failure
-                            Log.e("YouTube Data", "YouTube data could not be retrieved")
+                            Log.e("No YouTube Api Response", "YouTube data could not be retrieved from the api")
+                            super@MainActivity.showErrorSnackBar(resources.getString(R.string.youtube_api_error))
+                            sendUserToVideoChooserActivityWithSomeDelay()
                         }
                     })
                 }
@@ -293,9 +307,8 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                 state: PlayerConstants.PlayerState
             ) {
                 super.onStateChange(youTubePlayer, state)
+                //If the video has ended
                 if (state == PlayerConstants.PlayerState.ENDED) {
-                    Log.i("Youtube Video Ended", "Youtube Video Ended")
-
                     //If the user has already started recording a video of themselves
                     //and the video that they are watching is over
                     //End the recording here
@@ -306,6 +319,16 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         }
         //Add the listener to the youtube_video_player
         youtube_video_player.addYouTubePlayerListener(youtubePlayerListener!!)
+    }
+
+    //Redirects the user to the VideoChooserActivity after the delay period
+    private fun sendUserToVideoChooserActivityWithSomeDelay() {
+        Timer().schedule(object : TimerTask() {
+            override fun run() {
+                startActivity(Intent(this@MainActivity, VideoChooserActivity::class.java))
+                finish()
+            }
+        }, Constants.DELAY.toLong())
     }
 
     private fun startRecording() {
@@ -502,9 +525,6 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                 object : VideoCapture.OnVideoSavedCallback {
                     //If the video is saved successfully (locally)
                     override fun onVideoSaved(outputFileResults: VideoCapture.OutputFileResults) {
-                        //Show the corresponding success message
-//                        super@MainActivity.showSuccessSnackBar(resources.getString(R.string.video_save_locally_success))
-
                         //Then upload the video to the firebase storage too
                         uploadVideo(outputFileResults.savedUri)
                     }

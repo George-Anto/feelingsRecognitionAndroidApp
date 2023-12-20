@@ -28,6 +28,7 @@ class VideoChooserActivity : BaseActivity() {
         btn_watch_youtube_video.setOnClickListener { enterYoutubeUrl() }
     }
 
+    //Go to the Main Activity, we do it that way because we have called finish() in it
     override fun onBackPressed() {
         startActivity(Intent(this, MainActivity::class.java))
         finish()
@@ -48,6 +49,8 @@ class VideoChooserActivity : BaseActivity() {
         toolbar_video_chooser_activity.setNavigationOnClickListener { onBackPressed() }
     }
 
+    //Method that executes when the user presses the Watch YouTube Video button
+    //Retrieves the url the user entered
     private fun enterYoutubeUrl() {
         //Get the video url from editTexts and trim the spaces
         val youtubeUrl: String = et_youtube_url.text.toString().trim {

@@ -23,15 +23,23 @@ object Constants {
 
     //The name of an intent extra information
     const val SIGN_UP_SUCCESS = "Sign Up Success"
+
     //The name of an intent extra information
     const val VIDEO_DATA = "Video Data"
+
+    // Delay for the execution of a function
+    const val DELAY = 3000
+
     //The name of an intent extra information
     const val YOUTUBE_URL = "Youtube URL"
-
     //Youtube api url
     const val YOUTUBE_BASE_API_URL = "https://www.googleapis.com/youtube/v3/"
     //Youtube video url format checker regex
     const val  YOUTUBE_ID_REG_EX = "(?<=watch\\?v=|/videos/|embed\\/|youtu.be\\/|\\/v\\/|\\/e\\/|" +
             "watch\\?v%3D|watch\\?feature=player_embedded&v=|%2Fvideos%2F|embed%\u200C\u200C2F|youtu." +
             "be%2F|%2Fv%2F)[^#\\&\\?\\n]*"
+    //Youtube http call parameter
+    const val SNIPPET = "snippet"
+    //Type of the youtube videos
+    const val YOUTUBE_VIDEO_TYPE = "Youtube Video"
 }

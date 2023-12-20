@@ -15,5 +15,6 @@ data class VideoData (
     //This field is used when we store the info of a video with
     //the face video of the user in the firestore database
     var faceVideoLinked: String =
-        "Only used when linked with the face video of a user"
+        "Only used when linked with the face video of a user",
+    var videoType: String = ""
 ): Parcelable

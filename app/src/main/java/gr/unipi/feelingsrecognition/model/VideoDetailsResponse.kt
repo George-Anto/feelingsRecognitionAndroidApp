@@ -1,5 +1,6 @@
 package gr.unipi.feelingsrecognition.model
 
+//Model for the response that we get for the video data from the youtube api
 data class VideoDetailsResponse(
     val items: List<VideoItem>
 )
@@ -11,7 +12,6 @@ data class VideoItem(
 data class VideoSnippet(
     val title: String,
     val thumbnails: Thumbnails
-    // We can add other fields as needed
 )
 
 data class Thumbnails(
