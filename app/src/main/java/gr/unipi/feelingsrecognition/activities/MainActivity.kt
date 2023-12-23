@@ -73,6 +73,9 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         retrofit.create(YouTubeApiService::class.java)
     }
     private var youtubePlayerListener: YouTubePlayerListener? = null
+    //Variable that indicates whether the onStart method runs for the first time since
+    //the creation of the activity or not
+    private var firstActivityLoad: Boolean = true
 
     //Companion object to declare a constant
     companion object {
@@ -89,9 +92,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         //If the intent has the extra info that the SignUpActivity only provides
         //that means that this is a new user and we show them a success message
         intent.extras.let { data ->
-            if (data != null) {
-                // Is this check the same? Could I use it instead?
-//            data?.let {
+            data?.let {
                 if (data.getBoolean(Constants.SIGN_UP_SUCCESS))
                     super.showSuccessSnackBar(resources.getString(R.string.successfully_registered))
             }
@@ -109,8 +110,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         //Check for the necessary permissions when creating the activity
         checkPermissions()
 
-        // TODO Make the start of the recording of the user automatic after they choose a video to watch
-        // TODO Make the videos disappear after the user comes back from the user profile activity
+        // TODO Maybe make a custom error that will be thrown when something goes wrong and redirect the user to select a video again?
         //Listener for the button that starts the recording of the video
         btn_capture_video.setOnClickListener {
 
@@ -126,11 +126,20 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
     override fun onStart() {
         super.onStart()
 
+        //If the onStart has ran before since the creation of the activity
+        //Reset the ui and the video related variables
+        if (!firstActivityLoad) resetActivityVideoViews()
+
+        //Update the indicator variable
+        firstActivityLoad = false
+
         //Check if a youtube url string is present in the intent
         val youtubeUrl = intent?.getStringExtra(Constants.YOUTUBE_URL)
         // Use the url to load and play the video if it's present
         if (!youtubeUrl.isNullOrEmpty()) {
             playYoutubeVideo(youtubeUrl)
+            //Delete the youtube url data from the intent
+            intent?.removeExtra(Constants.YOUTUBE_URL)
         }
 
         //Check if a videoData object is present in the intent
@@ -140,6 +149,8 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
             Log.i(Constants.VIDEO_DATA, videoData.toString())
             //Call the function that loads the video to the UI
             loadVideoToUI(videoData)
+            //Delete the videoData from the intent
+            intent?.removeExtra(Constants.VIDEO_DATA)
         }
     }
 
@@ -191,12 +202,19 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         //If the user presses the Choose a Video to Watch button
         when (menuItem.itemId) {
             R.id.nav_choose_video_from_list -> {
-                //Send the user to the Video Chooser Activity screen
-                startActivity(Intent(this, VideoChooserActivity::class.java))
-                //Finish this activity so when the user returns here,
-                //the activity will load from the start
-                //We need this to load the youtube video property to the ui
-                finish()
+                //If there is no recording being made at the moment or no uploading is taking place
+                //The user can go to the VideoChooserActivity
+                if (noRecordingIsOnOrVideoIsBeingUploading()) {
+                    //Send the user to the Video Chooser Activity screen
+                    startActivity(Intent(this, VideoChooserActivity::class.java))
+                    //Finish this activity so when the user returns here,
+                    //the activity will load from the start
+                    //We need this to load the youtube video property to the ui
+                    finish()
+                //Else a corresponding message will be displayed
+                } else {
+                    super.showErrorSnackBar(resources.getString(R.string.stop_the_recording_first))
+                }
             }
             //If the user presses the My Profile button
             R.id.nav_my_profile -> {
@@ -226,6 +244,41 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         return true
     }
 
+    //Checks if a video is being recorded or a video is being uploading
+    //If this is the case it returns false else true
+    private fun noRecordingIsOnOrVideoIsBeingUploading(): Boolean {
+        if (btn_capture_video.text.toString() == resources.getString(R.string.start_recording)) {
+            return if (videoData !== null) {
+                videoData?.faceVideoLinked.toString() != Constants.VIDEO_DATA_FACE_VIDEO_DEFAULT_VALUE
+            } else {
+                true
+            }
+        }
+        return false
+    }
+
+    //Method the resets the ui and the video related variables
+    private fun resetActivityVideoViews() {
+        tv_select_video_to_watch.visibility = View.VISIBLE
+        tv_rec.visibility = View.INVISIBLE
+        btn_capture_video.visibility = View.GONE
+        tv_select_a_video_to_start_recording.visibility = View.VISIBLE
+        //If the video_player has been initialized, delete it and remove it from ui
+        if (video_player != null) {
+            video_player.visibility = View.GONE
+            video_player.stopPlayback()
+        }
+        //If the youtube_video_player has been initialized, delete it and remove it from ui
+        if (youtube_video_player != null) {
+            youtube_video_player.visibility = View.GONE
+            youtube_video_player.release()
+            //Remove the existing YouTubePlayerListener
+            if (youtubePlayerListener != null) {
+                youtube_video_player.removeYouTubePlayerListener(youtubePlayerListener!!)
+            }
+        }
+    }
+
     //A test url: "https://www.youtube.com/watch?v=668nUCeBHyY"
     //Another test url: "https://www.youtube.com/watch?v=fLeJJPxua3E"
     private fun playYoutubeVideo(youtubeVideoUrl: String) {
@@ -243,6 +296,10 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                 //If there is a video id, play the video
                 if (videoId.isNotEmpty()) {
                     youTubePlayer.loadVideo(videoId, 0f)
+
+                    //And then start the recording
+                    if (btn_capture_video.text.toString() == resources.getString(R.string.start_recording))
+                        startRecording()
 
                     //Create the http call that we use to get the metadata for that youtube video
                     val call: Call<VideoDetailsResponse> = apiService
@@ -276,7 +333,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                                 tv_select_a_video_to_start_recording.visibility = View.GONE
 
                                 //Create the videoData object from data that we retrieved from the api
-                                val videoData = VideoData(videoId, youtubeVideoUrl, videoTitle!!, videoThumbnail!!,videoType = Constants.YOUTUBE_VIDEO_TYPE)
+                                val videoData = VideoData(videoId, youtubeVideoUrl, videoTitle!!, videoThumbnail!!, videoType = Constants.YOUTUBE_VIDEO_TYPE)
                                 Log.i(Constants.VIDEO_DATA, videoData.toString())
 
                                 //Store it to a field so we can use it anywhere in this activity
@@ -414,12 +471,15 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                 //and the textView invisible
                 btn_capture_video.visibility = View.VISIBLE
                 tv_select_a_video_to_start_recording.visibility = View.GONE
+                //And then start the recording
+                if (btn_capture_video.text.toString() == resources.getString(R.string.start_recording))
+                    startRecording()
             }
 
             //Listener for when the video has ended
             video_player.setOnCompletionListener {
 
-                //If the user has already started recording a video of themselves
+                //If the recording of the video has started
                 //and the video that they are watching is over
                 if (btn_capture_video.text.toString() == resources.getString(R.string.stop_recording))
                     stopRecording()
