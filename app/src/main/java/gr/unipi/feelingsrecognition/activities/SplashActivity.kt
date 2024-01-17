@@ -10,6 +10,7 @@ import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import gr.unipi.feelingsrecognition.R
 import gr.unipi.feelingsrecognition.firebase.FirestoreClass
+import gr.unipi.feelingsrecognition.utils.Constants
 import kotlinx.android.synthetic.main.activity_splash.*
 
 @SuppressLint("CustomSplashScreen")
@@ -51,6 +52,6 @@ class SplashActivity : AppCompatActivity() {
             }
             //Finish this activity so the user can not go back to it using the back button
             finish()
-        }, 2500) //Here we pass the delay time in milliSeconds after which the splash activity will disappear
+        }, Constants.SPLASH_DELAY.toLong()) //Here we pass the delay time in milliSeconds after which the splash activity will disappear
     }
 }

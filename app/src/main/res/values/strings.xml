@@ -31,6 +31,7 @@
     <string name="video_save_locally_error">Error while saving video locally.</string>
     <string name="video_cloud_save_success">Video has been uploaded to the cloud successfully!</string>
     <string name="video_cloud_save_error">Error while uploading video to the cloud.</string>
+    <string name="video_recording_error">Error while recording the video, please try again.</string>
     <string name="rec">🔴 REC</string>
     <string name="not_valid_youtube_url">This is not a valid YouTube video url</string>
     <string name="youtube_api_error">An error occurred, please start the process again</string>

@@ -110,7 +110,6 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         //Check for the necessary permissions when creating the activity
         checkPermissions()
 
-        // TODO Maybe make a custom error that will be thrown when something goes wrong and redirect the user to select a video again?
         //Listener for the button that starts the recording of the video
         btn_capture_video.setOnClickListener {
 
@@ -599,9 +598,12 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                 }
             )
         }
-        //If the recording produced an error, log it to the console
+        //If the recording produced an error
         catch (e: Exception) {
+            //Log it to the console
             e.printStackTrace()
+            super.showErrorSnackBar(resources.getString(R.string.video_recording_error))
+            sendUserToVideoChooserActivityWithSomeDelay()
         }
     }
 

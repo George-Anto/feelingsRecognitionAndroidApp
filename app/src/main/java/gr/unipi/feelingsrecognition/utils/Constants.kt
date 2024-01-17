@@ -29,8 +29,9 @@ object Constants {
     //VideoData property default value
     const val VIDEO_DATA_FACE_VIDEO_DEFAULT_VALUE = "Only used when linked with the face video of a user"
 
-    // Delay for the execution of a function
-    const val DELAY = 3000
+    // Delays for the execution of some functions
+    const val DELAY = 3500
+    const val SPLASH_DELAY = 2500
 
     //The name of an intent extra information
     const val YOUTUBE_URL = "Youtube URL"
