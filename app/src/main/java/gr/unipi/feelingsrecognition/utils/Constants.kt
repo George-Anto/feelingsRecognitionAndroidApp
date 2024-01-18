@@ -30,7 +30,7 @@ object Constants {
     const val VIDEO_DATA_FACE_VIDEO_DEFAULT_VALUE = "Only used when linked with the face video of a user"
 
     // Delays for the execution of some functions
-    const val DELAY = 3500
+    const val DELAY = 3000
     const val SPLASH_DELAY = 2500
 
     //The name of an intent extra information

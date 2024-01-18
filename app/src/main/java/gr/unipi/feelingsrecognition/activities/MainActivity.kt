@@ -296,10 +296,6 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                 if (videoId.isNotEmpty()) {
                     youTubePlayer.loadVideo(videoId, 0f)
 
-                    //And then start the recording
-                    if (btn_capture_video.text.toString() == resources.getString(R.string.start_recording))
-                        startRecording()
-
                     //Create the http call that we use to get the metadata for that youtube video
                     val call: Call<VideoDetailsResponse> = apiService
                         .getVideoDetails(
@@ -326,10 +322,15 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                                 Log.i("Video Title: ", videoTitle ?: "null")
                                 Log.i("Video Thumbnail: ", videoThumbnail ?: "null")
 
-                                //When the video is ready, make the button that starts the recording visible
-                                //and the textView invisible
+                                //Make the button that starts the recording visible and the textView invisible
                                 btn_capture_video.visibility = View.VISIBLE
                                 tv_select_a_video_to_start_recording.visibility = View.GONE
+
+                                //And then start the recording
+                                //In this point we know that there is a youtube video with that ID
+                                //because the api call for the data was successful
+                                if (btn_capture_video.text.toString() == resources.getString(R.string.start_recording))
+                                    startRecording()
 
                                 //Create the videoData object from data that we retrieved from the api
                                 val videoData = VideoData(videoId, youtubeVideoUrl, videoTitle!!, videoThumbnail!!, videoType = Constants.YOUTUBE_VIDEO_TYPE)
