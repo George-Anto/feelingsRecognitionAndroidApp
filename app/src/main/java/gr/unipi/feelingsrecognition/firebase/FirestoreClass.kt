@@ -10,6 +10,7 @@ import gr.unipi.feelingsrecognition.activities.*
 import gr.unipi.feelingsrecognition.model.User
 import gr.unipi.feelingsrecognition.model.VideoData
 import gr.unipi.feelingsrecognition.utils.Constants
+import kotlinx.coroutines.tasks.await
 
 //Custom class where we add the operations performed for the firestore database
 class FirestoreClass {
@@ -106,6 +107,32 @@ class FirestoreClass {
                     e
                 )
             }
+    }
+
+    //Function to retrieve the user data using firebase, from the firestore database
+    suspend fun returnUserData(activity: Activity): User? {
+        return try {
+            //We specify the collection (users table) we want the data from
+            val document = fireStore
+                .collection(Constants.USERS)
+                //We specify the key of the document we want to retrieve from the database
+                //The key is the id of the currently signed in user
+                //We get this id from the Authentication service of the firebase
+                //Review the last function of this class (getCurrentUserID())
+                .document(getCurrentUserID())
+                //Retrieve the document
+                .get()
+                //Wait for the return of the data
+                .await()
+
+            //Create the user object and return it
+            val loggedInUser = document.toObject(User::class.java)
+            loggedInUser
+        } catch (e: Exception) {
+            // Log the error and return null
+            Log.e(activity.javaClass.simpleName, "Error while getting loggedIn user details", e)
+            null
+        }
     }
 
     //Function to update the user profile data into the database

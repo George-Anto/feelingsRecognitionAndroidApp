@@ -7,7 +7,7 @@ import java.util.*
 //Class that is in charge of loading the credentials.properties file in the program
 object LoadPropertiesFile {
 
-    //Returns the api key from the credentials.properties file
+    //Returns the API key from the credentials.properties file
     fun loadApiKey(context: Context): String {
         val properties = Properties()
 

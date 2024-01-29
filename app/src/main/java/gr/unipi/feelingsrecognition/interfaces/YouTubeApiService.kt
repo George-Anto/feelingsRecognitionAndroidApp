@@ -5,17 +5,17 @@ import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-//Interface for interacting with the YouTube api to retrieve video data
+//Interface for interacting with the YouTube API to retrieve video data
 interface YouTubeApiService {
 
     /**
      * Retrieves details for a specific video based on its ID.
      *
-     * @param part The part parameter specifies the video resource properties that the api response will include.
+     * @param part The part parameter specifies the video resource properties that the API response will include.
      * @param videoId The ID of the YouTube video for which details are requested.
-     * @param apiKey The api key for authenticating and authorizing the request to the YouTube api.
+     * @param apiKey The API key for authenticating and authorizing the request to the YouTube api.
      *
-     * @return A [Call] object representing the api call, which can be executed to get the response.
+     * @return A [Call] object representing the API call, which can be executed to get the response.
      */
     @GET("videos")
     fun getVideoDetails(

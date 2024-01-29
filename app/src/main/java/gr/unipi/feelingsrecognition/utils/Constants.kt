@@ -28,6 +28,10 @@ object Constants {
     const val VIDEO_DATA = "Video Data"
     //VideoData property default value
     const val VIDEO_DATA_FACE_VIDEO_DEFAULT_VALUE = "Only used when linked with the face video of a user"
+    //VideoData property: VideoType - potential value
+    const val OUR_COLLECTION_VIDEO_TYPE = "Our Collection Video"
+
+    const val EMPTY_STRING = ""
 
     // Delays for the execution of some functions
     const val DELAY = 3000
@@ -35,7 +39,7 @@ object Constants {
 
     //The name of an intent extra information
     const val YOUTUBE_URL = "Youtube URL"
-    //Youtube api url
+    //Youtube API url
     const val YOUTUBE_BASE_API_URL = "https://www.googleapis.com/youtube/v3/"
     //Youtube video url format checker regex
     const val  YOUTUBE_ID_REG_EX = "(?<=watch\\?v=|/videos/|embed\\/|youtu.be\\/|\\/v\\/|\\/e\\/|" +
@@ -45,4 +49,25 @@ object Constants {
     const val SNIPPET = "snippet"
     //Type of the youtube videos
     const val YOUTUBE_VIDEO_TYPE = "Youtube Video"
+
+    //MP4 mime type
+    const val MP4 = "video/mp4"
+    //MP4 Extension
+    const val MP4_EXTENSION = ".mp4"
+
+    //Face video analysis API related properties
+    const val FACE_API_URL = "https://emotion-analyser-service-3nsx.onrender.com"
+    const val VIDEO_DATA_FACE_API = "videoData"
+    const val SECONDS_90 = 90L
+    const val VIDEO = "video"
+    const val VIDEO_STAR = "video/*"
+    const val GUEST = "guest"
+    const val V = "v="
+    const val DASH = "-"
+    const val ANDROID = "android"
+    const val DATE_FORMAT = "yyyyMMddHHmmss"
+    const val FOR_UPLOAD_TO_FACE_ANALYSIS_API = "For upload to face analysis API"
+
+    //8 Kilobytes value
+    const val KILOBYTES_8 = 8 * 1024
 }

@@ -43,17 +43,32 @@ import kotlinx.android.synthetic.main.content_main.*
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
 import gr.unipi.feelingsrecognition.R
+import gr.unipi.feelingsrecognition.interfaces.FaceApiService
 import gr.unipi.feelingsrecognition.interfaces.YouTubeApiService
+import gr.unipi.feelingsrecognition.model.FaceApiVideoData
 import gr.unipi.feelingsrecognition.model.User
 import gr.unipi.feelingsrecognition.model.VideoDetailsResponse
 import gr.unipi.feelingsrecognition.utils.LoadPropertiesFile
+import gr.unipi.feelingsrecognition.utils.UriToFileConverter
+import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.io.File
+import java.io.IOException
 import java.util.*
+import java.util.concurrent.TimeUnit
 import kotlin.collections.HashMap
+import androidx.lifecycle.lifecycleScope
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.ResponseBody
+import java.text.SimpleDateFormat
+import kotlin.random.Random
 
 //This activity inherits from BaseActivity and can use its functions
 class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -62,7 +77,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
     private var videoCapture: VideoCapture? = null
     private var videoData: VideoData? = null
     //The youtube service that we use to load the youtube video
-    private val apiService: YouTubeApiService by lazy {
+    private val youTubeApiService: YouTubeApiService by lazy {
         val retrofit = Retrofit.Builder()
             .baseUrl(Constants.YOUTUBE_BASE_API_URL)
             .addConverterFactory(GsonConverterFactory.create())
@@ -72,10 +87,37 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         //interface using the configured Retrofit instance
         retrofit.create(YouTubeApiService::class.java)
     }
+    //The face video analysis API service that we use to send the video data to the API
+    private val faceApiService: FaceApiService by lazy {
+
+        //Create an OkHttpClient with custom timeouts and retry policy
+        val okHttpClient = OkHttpClient.Builder()
+            //Set the maximum time to wait for a connection to be established
+            .connectTimeout(Constants.SECONDS_90, TimeUnit.SECONDS)
+            //Set the maximum time to wait for the server to send data
+            .readTimeout(Constants.SECONDS_90, TimeUnit.SECONDS)
+            //Set the maximum time to wait for the server to accept data
+            .writeTimeout(Constants.SECONDS_90, TimeUnit.SECONDS)
+            //Enable automatic retry on connection failure
+            .retryOnConnectionFailure(true)
+            .build()
+
+        val retrofit = Retrofit.Builder()
+            .baseUrl(Constants.FACE_API_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        //Create an implementation of the FaceApiService
+        //interface using the configured Retrofit instance
+        retrofit.create(FaceApiService::class.java)
+    }
     private var youtubePlayerListener: YouTubePlayerListener? = null
     //Variable that indicates whether the onStart method runs for the first time since
     //the creation of the activity or not
     private var firstActivityLoad: Boolean = true
+
+    private var userData: User? = null
 
     //Companion object to declare a constant
     companion object {
@@ -118,6 +160,12 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                 == resources.getString(R.string.start_recording)) startRecording()
             //If the user has already started recording a video and presses the button again
              else stopRecording()
+        }
+
+        //Launch a coroutine in the background using lifecycleScope to retrieve the user data
+        //The execution of returnUserData will not block the main thread
+        lifecycleScope.launch {
+            userData = FirestoreClass().returnUserData(this@MainActivity)
         }
     }
 
@@ -248,7 +296,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
     private fun noRecordingIsOnOrVideoIsBeingUploading(): Boolean {
         if (btn_capture_video.text.toString() == resources.getString(R.string.start_recording)) {
             return if (videoData !== null) {
-                videoData?.faceVideoLinked.toString() != Constants.VIDEO_DATA_FACE_VIDEO_DEFAULT_VALUE
+                videoData?.faceVideoLinked != Constants.VIDEO_DATA_FACE_VIDEO_DEFAULT_VALUE
             } else {
                 true
             }
@@ -297,14 +345,14 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                     youTubePlayer.loadVideo(videoId, 0f)
 
                     //Create the http call that we use to get the metadata for that youtube video
-                    val call: Call<VideoDetailsResponse> = apiService
+                    val call: Call<VideoDetailsResponse> = youTubeApiService
                         .getVideoDetails(
                             Constants.SNIPPET, videoId,
-                            //Get the api key from the properties file in our file system
+                            //Get the API key from the properties file in our file system
                             LoadPropertiesFile.loadApiKey(this@MainActivity)
                         )
 
-                    //Send the http call to the youtube api
+                    //Send the http call to the youtube API
                     call.enqueue(object : Callback<VideoDetailsResponse> {
                         //When we get a response
                         override fun onResponse(
@@ -326,18 +374,18 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                                 btn_capture_video.visibility = View.VISIBLE
                                 tv_select_a_video_to_start_recording.visibility = View.GONE
 
-                                //And then start the recording
-                                //In this point we know that there is a youtube video with that ID
-                                //because the api call for the data was successful
-                                if (btn_capture_video.text.toString() == resources.getString(R.string.start_recording))
-                                    startRecording()
-
-                                //Create the videoData object from data that we retrieved from the api
+                                //Create the videoData object from data that we retrieved from the API
                                 val videoData = VideoData(videoId, youtubeVideoUrl, videoTitle!!, videoThumbnail!!, videoType = Constants.YOUTUBE_VIDEO_TYPE)
                                 Log.i(Constants.VIDEO_DATA, videoData.toString())
 
                                 //Store it to a field so we can use it anywhere in this activity
                                 this@MainActivity.videoData = videoData
+
+                                //And then start the recording
+                                //In this point we know that there is a youtube video with that ID
+                                //because the API call for the data was successful
+                                if (btn_capture_video.text.toString() == resources.getString(R.string.start_recording))
+                                    startRecording()
 
                             //If there were no data, show an error message to the user
                             //Send the user back to the VideoChooserActivity
@@ -348,10 +396,10 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                             }
                         }
 
-                        //If we get no response from the youtube api, show an error message to the user
+                        //If we get no response from the youtube API, show an error message to the user
                         //Send the user back to the VideoChooserActivity after a small delay to choose again
                         override fun onFailure(call: Call<VideoDetailsResponse>, t: Throwable) {
-                            Log.e("No YouTube Api Response", "YouTube data could not be retrieved from the api")
+                            Log.e("No YouTube API Response", "YouTube data could not be retrieved from the API")
                             super@MainActivity.showErrorSnackBar(resources.getString(R.string.youtube_api_error))
                             sendUserToVideoChooserActivityWithSomeDelay()
                         }
@@ -571,7 +619,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         val timestamp = System.currentTimeMillis()
         val contentValues = ContentValues()
         contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, timestamp)
-        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
+        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, Constants.MP4)
         //Start the actual recording
         try {
             videoCapture!!.startRecording(
@@ -585,8 +633,15 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                 object : VideoCapture.OnVideoSavedCallback {
                     //If the video is saved successfully (locally)
                     override fun onVideoSaved(outputFileResults: VideoCapture.OutputFileResults) {
-                        //Then upload the video to the firebase storage too
-                        uploadVideo(outputFileResults.savedUri)
+                        //If the video the user watched was from our collection
+                        //Then upload the video to the firebase storage
+                        if (videoData!!.videoType == Constants.OUR_COLLECTION_VIDEO_TYPE) {
+                            uploadVideoToFirebase(outputFileResults.savedUri)
+                        }//If the video the user watched was from youtube
+                        //Then upload the video to the face analysis API
+                        else if (videoData!!.videoType == Constants.YOUTUBE_VIDEO_TYPE) {
+                            uploadVideoToFaceApi(outputFileResults.savedUri)
+                        }
                     }
 
                     //If the video local saving failed
@@ -609,7 +664,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
     }
 
     //Function to upload the captured video to the firebase storage
-    private fun uploadVideo(videoUri: Uri?) {
+    private fun uploadVideoToFirebase(videoUri: Uri?) {
 
         super.showProgressDialog(resources.getString(R.string.uploading_video))
 
@@ -672,6 +727,105 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                 super.hideProgressDialog()
                 super.showErrorSnackBar(resources.getString(R.string.video_cloud_save_error))
             }
+    }
+
+    private fun uploadVideoToFaceApi(videoUri: Uri?) {
+
+        super.showProgressDialog(resources.getString(R.string.uploading_video))
+
+        //If no URI is present, then show an error message to the user
+        if (videoUri == null) {
+            Log.e("No Video URI", "No Video URI detected.")
+            super.hideProgressDialog()
+            super.showErrorSnackBar(resources.getString(R.string.video_cloud_save_error))
+            return
+        }
+
+        //Create the video File object, if anything goes wrong and the File is not created successfully
+        //we show an error message to the user and stop the process
+        val videoFile: File?
+        try {
+            videoFile = UriToFileConverter.createFileFromUri(this, contentResolver, videoUri, createVideoFileName())
+        } catch (e: IOException) {
+            e.printStackTrace()
+            Log.e("No Video File", "Could not create the video file.")
+            super.hideProgressDialog()
+            super.showErrorSnackBar(resources.getString(R.string.video_cloud_save_error))
+            return
+        }
+
+        //Create the FaceApiVideoData object that we will send to the API
+        val youtubeUrl = videoData?.uri
+        val videoId = youtubeUrl?.split(Constants.V)?.get(1)
+        val username = userData?.email ?: Constants.GUEST
+        val videoFileName = videoFile.name
+
+        val faceApiVideoData = FaceApiVideoData(youtubeUrl!!, videoId!!, username, videoFileName)
+
+        //Create the MultipartBody.Part object that we will send as the face video to the API
+        val requestFile = videoFile.asRequestBody(Constants.VIDEO_STAR.toMediaTypeOrNull())
+        val videoPart = MultipartBody.Part.createFormData(Constants.VIDEO, videoFile.name, requestFile)
+
+        //Create the http call that we use to send the data to the API
+        val call = faceApiService.uploadVideo(videoPart, faceApiVideoData)
+
+        //Send the http call to the face video analysis API
+        call.enqueue(object : Callback<ResponseBody> {
+            //When we get a response
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                //Set the faceVideoLinked property to indicate that the face video
+                //will be uploaded to face analysis API and not Firebase
+                //We need to set that so we know the process is terminated
+                videoData?.faceVideoLinked = Constants.FOR_UPLOAD_TO_FACE_ANALYSIS_API
+
+                //If is was successful
+                if (response.isSuccessful) {
+                    Log.i("Video Data uploaded Successfully", response.toString())
+
+                    super@MainActivity.hideProgressDialog()
+                    super@MainActivity.showSuccessSnackBar(resources.getString(R.string.video_cloud_save_success))
+                } else {
+                    Log.e("Error in Face Analysis API Response", response.toString())
+
+                    super@MainActivity.hideProgressDialog()
+                    super@MainActivity.showErrorSnackBar(resources.getString(R.string.video_cloud_save_error))
+                }
+            }
+
+            //If we get no response from theAPI, show an error message to the user
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                //Set the faceVideoLinked property to indicate that the face video
+                //will be uploaded to face analysis API and not Firebase
+                //We need to set that so we know the process is terminated (even with failure)
+                videoData?.faceVideoLinked = Constants.FOR_UPLOAD_TO_FACE_ANALYSIS_API
+
+                Log.e("No Face Analysis API Response", "Error: ${t.message}", t)
+                super@MainActivity.hideProgressDialog()
+                super@MainActivity.showErrorSnackBar(resources.getString(R.string.video_cloud_save_error))
+            }
+        })
+    }
+
+    //Function that constructs the name of the File object that we create from the video Uri
+    private fun createVideoFileName(): String {
+        //A timestamp of the current time in a specific format
+        val dateFormat = SimpleDateFormat(Constants.DATE_FORMAT, Locale.getDefault())
+        val currentDate = Calendar.getInstance().time
+
+        //Five random characters String
+        val allowedChars = ('a'..'z') + ('A'..'Z') + ('0'..'9')
+        val randomChars = (1..5).map { allowedChars.random(Random(System.currentTimeMillis())) }
+            .joinToString(Constants.EMPTY_STRING)
+
+        //Create a StringBuilder to construct the String
+        val builder = StringBuilder()
+        builder.append(Constants.ANDROID).append(Constants.DASH)
+        builder.append(dateFormat.format(currentDate)).append(Constants.DASH)
+        builder.append(videoData?.uri?.split(Constants.V)?.get(1) ?: Constants.EMPTY_STRING).append(Constants.DASH)
+        builder.append(userData?.email ?: Constants.GUEST).append(Constants.DASH)
+        builder.append(randomChars).append(Constants.MP4_EXTENSION)
+
+        return builder.toString()
     }
 
     //If the video was uploaded to the storage successfully and then an entry
