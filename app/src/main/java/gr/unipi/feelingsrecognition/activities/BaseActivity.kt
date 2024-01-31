@@ -107,14 +107,14 @@ open class BaseActivity : AppCompatActivity() {
     }
 
     //Function to extract the video id of a youtube url
-    fun extractVideoId(videoUrl: String): String {
-        val pattern = Pattern.compile(Constants.YOUTUBE_ID_REG_EX)
-        val matcher = pattern.matcher(videoUrl)
+    fun extractVideoId(url: String): String {
+        val pattern = Pattern.compile(Constants.VALID_YOUTUBE_URL_REG_EX)
+        val matcher = pattern.matcher(url)
 
-        return if (matcher.find()) {
-            matcher.group()
+        return if (matcher.matches()) {
+            matcher.group(1) ?: Constants.EMPTY_STRING
         } else {
-            ""
+            Constants.EMPTY_STRING
         }
     }
 }

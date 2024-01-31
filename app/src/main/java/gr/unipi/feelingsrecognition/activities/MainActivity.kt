@@ -327,6 +327,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
     }
 
     //A test url: "https://www.youtube.com/watch?v=668nUCeBHyY"
+    //A shortened url: "https://youtu.be/668nUCeBHyY?si=AqyYVst4ON-e5ukf"
     //Another test url: "https://www.youtube.com/watch?v=fLeJJPxua3E"
     private fun playYoutubeVideo(youtubeVideoUrl: String) {
         lifecycle.addObserver(youtube_video_player)

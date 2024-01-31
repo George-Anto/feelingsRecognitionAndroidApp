@@ -32,6 +32,7 @@ object Constants {
     const val OUR_COLLECTION_VIDEO_TYPE = "Our Collection Video"
 
     const val EMPTY_STRING = ""
+    const val ONE_BLANK_CHAR = ' '
 
     // Delays for the execution of some functions
     const val DELAY = 3000
@@ -42,13 +43,18 @@ object Constants {
     //Youtube API url
     const val YOUTUBE_BASE_API_URL = "https://www.googleapis.com/youtube/v3/"
     //Youtube video url format checker regex
-    const val  YOUTUBE_ID_REG_EX = "(?<=watch\\?v=|/videos/|embed\\/|youtu.be\\/|\\/v\\/|\\/e\\/|" +
-            "watch\\?v%3D|watch\\?feature=player_embedded&v=|%2Fvideos%2F|embed%\u200C\u200C2F|youtu." +
-            "be%2F|%2Fv%2F)[^#\\&\\?\\n]*"
+    //Only the standard and the shortened video url formats are allowed
+    const val VALID_YOUTUBE_URL_REG_EX = "(?:(?:https?:)?//)?(?:www\\.)?(?:youtube\\.com/(?:[^/]+/\\.+" +
+            "/|(?:v|e(?:mbed)?)|.*[?&]v=)|youtu\\.be/)([^\"&?/\\s]{11})(?:\\?[\\w\\-]+=[^&]*)*"
+    //Shortened youtube video url format checker regex
+    const val SHORTENED_YOUTUBE_URL_REG_EX = """^https?://youtu\.be/[^?/]+(\?.*)?$"""
+    const val STANDARD_YOUTUBE_URL = "https://www.youtube.com/watch?v="
     //Youtube http call parameter
     const val SNIPPET = "snippet"
     //Type of the youtube videos
     const val YOUTUBE_VIDEO_TYPE = "Youtube Video"
+    const val SLASH = "/"
+    const val QUESTION_MARK = "?"
 
     //MP4 mime type
     const val MP4 = "video/mp4"

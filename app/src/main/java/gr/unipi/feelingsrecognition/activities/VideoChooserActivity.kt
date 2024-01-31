@@ -11,6 +11,7 @@ import gr.unipi.feelingsrecognition.firebase.FirestoreClass
 import gr.unipi.feelingsrecognition.model.VideoData
 import gr.unipi.feelingsrecognition.utils.Constants
 import kotlinx.android.synthetic.main.activity_video_chooser.*
+import java.util.regex.Pattern
 
 class VideoChooserActivity : BaseActivity() {
 
@@ -55,12 +56,14 @@ class VideoChooserActivity : BaseActivity() {
         //Get the video url from editTexts and trim the spaces
         val youtubeUrl: String = et_youtube_url.text.toString().trim {
                 youtubeUrl ->
-            youtubeUrl <= ' '
+            youtubeUrl <= Constants.ONE_BLANK_CHAR
         }
 
-        //Check that the user input is a valid url and we can extract the video id
+        //Check that the user input is a valid url, has a valid url format and we can extract the video id
         //If this is not the case and the validation is not passed, the process terminates
-        if (!URLUtil.isValidUrl(youtubeUrl) || super.extractVideoId(youtubeUrl).isEmpty()) {
+        if (!URLUtil.isValidUrl(youtubeUrl)
+            || super.extractVideoId(youtubeUrl).isEmpty()
+            || !isValidYoutubeUrl(youtubeUrl)) {
             super@VideoChooserActivity
                 .showErrorSnackBar(resources.getString(R.string.not_valid_youtube_url))
             return
@@ -68,9 +71,33 @@ class VideoChooserActivity : BaseActivity() {
 
         //Open the Main Activity and send it the url of the youtube video the user inserted
         val intent = Intent(this@VideoChooserActivity, MainActivity::class.java)
-        intent.putExtra(Constants.YOUTUBE_URL, youtubeUrl)
+        intent.putExtra(Constants.YOUTUBE_URL, expandYouTubeUrl(youtubeUrl))
         startActivity(intent)
         finish()
+    }
+
+    //We check if this is a valid youtube video url
+    //We allow only the standard and the shortened video url formats
+    private fun isValidYoutubeUrl(url: String): Boolean {
+        val pattern = Pattern.compile(Constants.VALID_YOUTUBE_URL_REG_EX)
+        val matcher = pattern.matcher(url)
+
+        return matcher.matches()
+    }
+
+    //If the youtube video url is in the shortened form, change it to the standard form
+    private fun expandYouTubeUrl(url: String): String {
+        //Check if the URL matches the format of a shortened YouTube URL
+        val isShortenedUrl = url.matches(Regex(Constants.SHORTENED_YOUTUBE_URL_REG_EX))
+
+        if (isShortenedUrl) {
+            //Extract the video ID from the shortened URL
+            val videoId = url.substringAfterLast(Constants.SLASH).substringBefore(Constants.QUESTION_MARK)
+            //Construct the original URL
+            return Constants.STANDARD_YOUTUBE_URL + videoId
+        }
+        //If the URL is not in the shortened format, return the original URL
+        return url
     }
 
     //Function that is called in the getVideos() function of the Firestore class
