@@ -31,6 +31,8 @@
     <string name="video_save_locally_error">Error while saving video locally.</string>
     <string name="video_cloud_save_success">Video has been uploaded to the cloud successfully!</string>
     <string name="video_cloud_save_error">Error while uploading video to the cloud.</string>
+    <string name="video_cloud_save_network_error">Error while uploading video to the cloud.
+        There was a network error.</string>
     <string name="video_recording_error">Error while recording the video, please try again.</string>
     <string name="rec">🔴 REC</string>
     <string name="not_valid_youtube_url">This is not a valid YouTube video url</string>
@@ -38,6 +40,8 @@
     <string name="select_a_video_to_watch">Please select a video to watch from the menu.</string>
     <string name="select_a_video_to_start_recording">Select a video to Start Recording</string>
     <string name="stop_the_recording_first">Stop the recording and wait for the upload first</string>
+    <string name="no_internet_connection">No Internet connection.
+        Please turn on the Wi-Fi or the cellular data.</string>
 
     <string name="mobile">Mobile</string>
     <string name="update">UPDATE</string>

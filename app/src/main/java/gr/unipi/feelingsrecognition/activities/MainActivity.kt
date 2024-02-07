@@ -203,13 +203,20 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
 
     //Check for the necessary permissions every time the activity restarts
     override fun onRestart() {
+        super.onRestart()
+
         previewCamera.setBackgroundResource(R.drawable.ic_camera_background)
         //Set the REC indication off so the user knows that the recording has finished
         tv_rec.visibility = View.INVISIBLE
         //Set the button text to its initial text
         btn_capture_video.text = resources.getString(R.string.start_recording)
         checkPermissions()
-        super.onRestart()
+
+        //Check if there is an active network connection
+        if (!isNetworkAvailable(this)) {
+            //Display a message to the user indicating no internet connectivity
+            super.showErrorSnackBar(resources.getString(R.string.no_internet_connection))
+        }
     }
 
     //Override the onBackPressed() to close the drawer when open
@@ -330,6 +337,14 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
     //A shortened url: "https://youtu.be/668nUCeBHyY?si=AqyYVst4ON-e5ukf"
     //Another test url: "https://www.youtube.com/watch?v=fLeJJPxua3E"
     private fun playYoutubeVideo(youtubeVideoUrl: String) {
+
+        //Check if there is an active network connection
+        if (!super.isNetworkAvailable(this)) {
+            //Display a message to the user indicating no internet connectivity
+            super.showErrorSnackBar(resources.getString(R.string.no_internet_connection))
+            return
+        }
+
         lifecycle.addObserver(youtube_video_player)
         tv_select_video_to_watch.visibility = View.GONE
         youtube_video_player.visibility = View.VISIBLE
@@ -492,6 +507,14 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
 
     //Function to load the video to the UI
     private fun loadVideoToUI(videoData: VideoData?) {
+
+        //Check if there is an active network connection
+        if (!isNetworkAvailable(this)) {
+            //Display a message to the user indicating no internet connectivity
+            super.showErrorSnackBar(resources.getString(R.string.no_internet_connection))
+            return
+        }
+
         //If the data is not null
         if (videoData != null) {
 
@@ -621,51 +644,65 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         val contentValues = ContentValues()
         contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, timestamp)
         contentValues.put(MediaStore.MediaColumns.MIME_TYPE, Constants.MP4)
-        //Start the actual recording
-        try {
-            videoCapture!!.startRecording(
-                VideoCapture.OutputFileOptions.Builder(
-                    contentResolver,
-                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                    contentValues
-                ).build(),
-                getExecutor(),
-                //Save the video to the user's phone (locally)
-                object : VideoCapture.OnVideoSavedCallback {
-                    //If the video is saved successfully (locally)
-                    override fun onVideoSaved(outputFileResults: VideoCapture.OutputFileResults) {
-                        //If the video the user watched was from our collection
-                        //Then upload the video to the firebase storage
-                        if (videoData!!.videoType == Constants.OUR_COLLECTION_VIDEO_TYPE) {
-                            uploadVideoToFirebase(outputFileResults.savedUri)
-                        }//If the video the user watched was from youtube
-                        //Then upload the video to the face analysis API
-                        else if (videoData!!.videoType == Constants.YOUTUBE_VIDEO_TYPE) {
-                            uploadVideoToFaceApi(outputFileResults.savedUri)
+
+        //Launch a coroutine in the background using lifecycleScope to start the recording
+        lifecycleScope.launch {
+            //Start the actual recording
+            try {
+                videoCapture!!.startRecording(
+                    VideoCapture.OutputFileOptions.Builder(
+                        contentResolver,
+                        MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                        contentValues
+                    ).build(),
+                    getExecutor(),
+                    //Save the video to the user's phone (locally)
+                    object : VideoCapture.OnVideoSavedCallback {
+                        //If the video is saved successfully (locally)
+                        override fun onVideoSaved(outputFileResults: VideoCapture.OutputFileResults) {
+
+                            runOnUiThread {
+                                //If the video the user watched was from our collection
+                                //Then upload the video to the firebase storage
+                                if (videoData!!.videoType == Constants.OUR_COLLECTION_VIDEO_TYPE) {
+                                    uploadVideoToFirebase(outputFileResults.savedUri)
+                                }//If the video the user watched was from youtube
+                                //Then upload the video to the face analysis API
+                                else if (videoData!!.videoType == Constants.YOUTUBE_VIDEO_TYPE) {
+                                    uploadVideoToFaceApi(outputFileResults.savedUri)
+                                }
+                            }
+                        }
+
+                        //If the video local saving failed
+                        override fun onError(videoCaptureError: Int, message: String, cause: Throwable?) {
+                            //Show the corresponding error message
+                            super@MainActivity.showErrorSnackBar(resources.getString(R.string.video_save_locally_error))
+                            //And print the error message to the console
+                            Log.e("Video Saving Locally Error", message)
                         }
                     }
-
-                    //If the video local saving failed
-                    override fun onError(videoCaptureError: Int, message: String, cause: Throwable?) {
-                        //Show the corresponding error message
-                        super@MainActivity.showErrorSnackBar(resources.getString(R.string.video_save_locally_error))
-                        //And print the error message to the console
-                        Log.e("Video Saving Locally Error", message)
-                    }
-                }
-            )
-        }
-        //If the recording produced an error
-        catch (e: Exception) {
-            //Log it to the console
-            e.printStackTrace()
-            super.showErrorSnackBar(resources.getString(R.string.video_recording_error))
-            sendUserToVideoChooserActivityWithSomeDelay()
+                )
+            }
+            //If the recording produced an error
+            catch (e: Exception) {
+                //Log it to the console
+                e.printStackTrace()
+                super.showErrorSnackBar(resources.getString(R.string.video_recording_error))
+                sendUserToVideoChooserActivityWithSomeDelay()
+            }
         }
     }
 
     //Function to upload the captured video to the firebase storage
     private fun uploadVideoToFirebase(videoUri: Uri?) {
+
+        //Check if there is an active network connection
+        if (!super.isNetworkAvailable(this)) {
+            //Display a message to the user indicating no internet connectivity
+            super.showErrorSnackBar(resources.getString(R.string.no_internet_connection))
+            return
+        }
 
         super.showProgressDialog(resources.getString(R.string.uploading_video))
 
@@ -731,6 +768,13 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
     }
 
     private fun uploadVideoToFaceApi(videoUri: Uri?) {
+
+        //Check if there is an active network connection
+        if (!super.isNetworkAvailable(this)) {
+            //Display a message to the user indicating no internet connectivity
+            super.showErrorSnackBar(resources.getString(R.string.no_internet_connection))
+            return
+        }
 
         super.showProgressDialog(resources.getString(R.string.uploading_video))
 
@@ -802,7 +846,16 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
 
                 Log.e("No Face Analysis API Response", "Error: ${t.message}", t)
                 super@MainActivity.hideProgressDialog()
-                super@MainActivity.showErrorSnackBar(resources.getString(R.string.video_cloud_save_error))
+
+                //Check if the failure is due to network issues
+                if (t is IOException) {
+                    //Display a message to the user indicating network error
+                    super@MainActivity.showErrorSnackBar(resources.getString(R.string.video_cloud_save_network_error))
+                } else {
+                    //Generic error message
+                    super@MainActivity.showErrorSnackBar(resources.getString(R.string.video_cloud_save_error))
+
+                }
             }
         })
     }

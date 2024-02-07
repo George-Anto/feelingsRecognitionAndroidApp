@@ -74,6 +74,13 @@ class MyProfileActivity : BaseActivity() {
         //Listener for the update button
         btn_update.setOnClickListener {
 
+            //Check if there is an active network connection
+            if (!super.isNetworkAvailable(this)) {
+                //Display a message to the user indicating no internet connectivity
+                super.showErrorSnackBar(resources.getString(R.string.no_internet_connection))
+                return@setOnClickListener
+            }
+
             //If the user has selected an image, call the function that uploads it to the firebase storage
             if (selectedImageFileUri != null) {
                 uploadUserImage()

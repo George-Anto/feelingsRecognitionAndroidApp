@@ -1,6 +1,9 @@
 package gr.unipi.feelingsrecognition.activities
 
 import android.app.Dialog
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
@@ -116,5 +119,21 @@ open class BaseActivity : AppCompatActivity() {
         } else {
             Constants.EMPTY_STRING
         }
+    }
+
+    //Function to check if there is an active network connection
+    fun isNetworkAvailable(context: Context): Boolean {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        //Check if there is an active network
+        connectivityManager.activeNetwork?.let { activeNetwork ->
+            connectivityManager.getNetworkCapabilities(activeNetwork)?.let { networkCapabilities ->
+                //Check for different types of internet network (Cellular or WiFi)
+                return networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
+                        || networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+            }
+        }
+        //No active network or network capabilities detected
+        return false
     }
 }

@@ -21,12 +21,19 @@ class VideoChooserActivity : BaseActivity() {
 
         setupActionBar()
 
+        //Listener for the button that lets the user watch a youtube video
+        btn_watch_youtube_video.setOnClickListener { enterYoutubeUrl() }
+
+        //Check if there is an active network connection
+        if (!super.isNetworkAvailable(this)) {
+            //Display a message to the user indicating no internet connectivity
+            super.showErrorSnackBar(resources.getString(R.string.no_internet_connection))
+            return
+        }
+
         //Use the function in the firestore class that retrieves
         //all the available videos from the firebase
         FirestoreClass().getVideos(this)
-
-        //Listener for the button that lets the user watch a youtube video
-        btn_watch_youtube_video.setOnClickListener { enterYoutubeUrl() }
     }
 
     //Go to the Main Activity, we do it that way because we have called finish() in it
