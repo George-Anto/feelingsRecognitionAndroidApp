@@ -19,7 +19,6 @@ import gr.unipi.feelingsrecognition.firebase.FirestoreClass
 import gr.unipi.feelingsrecognition.model.User
 import gr.unipi.feelingsrecognition.utils.Constants
 import kotlinx.android.synthetic.main.activity_my_profile.*
-import java.io.IOException
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
@@ -40,7 +39,7 @@ class MyProfileActivity : BaseActivity() {
     private lateinit var userDetails: User
 
     //Field for user profile image URL
-    private var profileImageURL: String = ""
+    private var profileImageURL: String = Constants.EMPTY_STRING
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -149,7 +148,7 @@ class MyProfileActivity : BaseActivity() {
         et_name.setText(userDetails.name)
         et_email.setText(userDetails.email)
         //If the mobile phone is empty, the user has not given any so we show nothing
-        if (user.mobile != "") {
+        if (user.mobile != Constants.EMPTY_STRING) {
             et_mobile.setText(userDetails.mobile)
         }
     }
@@ -186,10 +185,9 @@ class MyProfileActivity : BaseActivity() {
                     .into(iv_profile_user_image) //The view in which the image will be loaded
             }
             //Catch possible exceptions
-            catch (e: IOException) {
+            catch (e: Exception) {
                 e.printStackTrace()
-            } catch (e: Exception) {
-                e.printStackTrace()
+                super.showErrorSnackBar(resources.getString(R.string.load_photo_error))
             }
         }
         //If the result code is not OK or the data are empty, log the error that occurred
@@ -204,7 +202,6 @@ class MyProfileActivity : BaseActivity() {
         super.showProgressDialog(resources.getString(R.string.please_wait))
 
         if (selectedImageFileUri != null) {
-
             //Get the storage reference
             //We store those images in the cloud storage of the firebase using unique
             //names for those files from both the id of the user and the current time in millis
@@ -229,10 +226,9 @@ class MyProfileActivity : BaseActivity() {
                         }
                 }
                 //If the image was not uploaded successfully
-                .addOnFailureListener { exception ->
+                .addOnFailureListener {
                     //Show the error snackbar
-                    super.showErrorSnackBar(exception.message.toString())
-
+                    super.showErrorSnackBar(resources.getString(R.string.upload_photo_error))
                     super.hideProgressDialog()
                 }
         }
@@ -290,7 +286,6 @@ class MyProfileActivity : BaseActivity() {
     //THIS FUNCTION IS CALLED INSIDE THE UPDATEUSERPROFILEDATA() FUNCTION OF THE FIRESTORE CLASS
     fun profileUpdateSuccess() {
         super.hideProgressDialog()
-
         //When the update is done, return to the MainActivity
         //with an OK result code to display the changes there too
         setResult(Activity.RESULT_OK)
@@ -301,7 +296,6 @@ class MyProfileActivity : BaseActivity() {
     fun profileUpdateFailure(errorMessage: String) {
         super.hideProgressDialog()
         super.showErrorSnackBar(resources.getString(R.string.user_profile_update_error))
-
         //Log the error
         Log.e("Error while updating the user.", errorMessage)
     }

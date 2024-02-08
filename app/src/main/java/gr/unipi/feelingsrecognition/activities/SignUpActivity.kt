@@ -51,15 +51,15 @@ class SignUpActivity : BaseActivity() {
         //Get the text from editTexts and trim the spaces
         val name: String = et_name.text.toString().trim {
                 name ->
-            name <= ' '
+            name <= Constants.ONE_BLANK_CHAR
         }
         val email: String = et_email.text.toString().trim {
                 email ->
-            email <= ' '
+            email <= Constants.ONE_BLANK_CHAR
         }
         val password: String = et_password.text.toString().trim {
                 password ->
-            password <= ' '
+            password <= Constants.ONE_BLANK_CHAR
         }
 
         //If the information the user gave us passes the validation process

@@ -74,6 +74,10 @@ object Constants {
     const val DATE_FORMAT = "yyyyMMddHHmmss"
     const val FOR_UPLOAD_TO_FACE_ANALYSIS_API = "For upload to face analysis API"
 
+    const val NO_FACE_VIDEO_UPLOAD = "No face video upload will take place"
+
     //8 Kilobytes value
     const val KILOBYTES_8 = 8 * 1024
+
+    const val KYOK_FONT = "Kyok-Light.otf"
 }

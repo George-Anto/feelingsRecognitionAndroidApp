@@ -6,6 +6,7 @@ import android.view.WindowManager
 import com.google.firebase.auth.FirebaseAuth
 import gr.unipi.feelingsrecognition.R
 import gr.unipi.feelingsrecognition.firebase.FirestoreClass
+import gr.unipi.feelingsrecognition.utils.Constants
 import kotlinx.android.synthetic.main.activity_sign_in.*
 
 class SignInActivity : BaseActivity() {
@@ -48,11 +49,11 @@ class SignInActivity : BaseActivity() {
         //Get the text from editTexts and trim the spaces
         val email: String = et_email.text.toString().trim {
                 email ->
-            email <= ' '
+            email <= Constants.ONE_BLANK_CHAR
         }
         val password: String = et_password.text.toString().trim {
                 password ->
-            password <= ' '
+            password <= Constants.ONE_BLANK_CHAR
         }
 
         //If the email and password pass the validation process

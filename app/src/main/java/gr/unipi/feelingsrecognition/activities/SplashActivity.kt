@@ -28,7 +28,7 @@ class SplashActivity : AppCompatActivity() {
         )
 
         //Get the custom font file from the assets folder and set it to the title textView
-        tv_app_name.typeface = Typeface.createFromAsset(assets, "Kyok-Light.otf")
+        tv_app_name.typeface = Typeface.createFromAsset(assets, Constants.KYOK_FONT)
 
         //The code inside the Handler will be executed after a delay (2.5 seconds)
         Handler(Looper.getMainLooper()).postDelayed({

@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import gr.unipi.feelingsrecognition.R
+import gr.unipi.feelingsrecognition.utils.Constants
 import kotlinx.android.synthetic.main.activity_intro.*
 
 class IntroActivity : AppCompatActivity() {
@@ -25,7 +26,7 @@ class IntroActivity : AppCompatActivity() {
         iv_intro_image.clipToOutline = true
 
         //Get the custom font file from the assets folder and set it to the title textView
-        tv_app_name_intro.typeface = Typeface.createFromAsset(assets, "Kyok-Light.otf")
+        tv_app_name_intro.typeface = Typeface.createFromAsset(assets, Constants.KYOK_FONT)
 
         //Listener for the button that sends user to the login screen
         btn_sign_in_intro.setOnClickListener {

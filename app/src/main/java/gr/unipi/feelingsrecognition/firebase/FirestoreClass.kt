@@ -38,11 +38,7 @@ class FirestoreClass {
             .addOnFailureListener { e ->
                 activity.hideProgressDialog()
                 activity.showErrorSnackBar(e.message.toString())
-                Log.e(
-                    activity.javaClass.simpleName,
-                    "Error writing document",
-                    e
-                )
+                Log.e(activity.javaClass.simpleName, "Error writing document", e)
             }
     }
 

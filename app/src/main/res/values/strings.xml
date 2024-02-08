@@ -57,6 +57,8 @@
     <string name="profile_data_updated_successfully">Profile Data updated successfully!</string>
     <string name="storage_permission_denied">You denied the permission for storage.
         You can also allow it from settings.</string>
+    <string name="load_photo_error">There was an error while loading your photo.</string>
+    <string name="upload_photo_error">There was an error while uploading your photo to the cloud.</string>
     <string name="not_valid_phone_number">Please provide a valid phone number.</string>
 
     <string name="choose_video">Choose a Video to Watch</string>

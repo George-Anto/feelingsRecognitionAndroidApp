@@ -224,6 +224,12 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
             drawer_layout.closeDrawer(GravityCompat.START)
         } else {
+            //If there is a recording being made at the moment or an uploading is taking place
+            //The user cannot use the back button for navigation
+            if (recordingIsOnOrVideoIsBeingUploading()) {
+                super.showErrorSnackBar(resources.getString(R.string.stop_the_recording_first))
+                return
+            }
             //Call this method of the BaseActivity to prevent accidental closing of the activity
             super.doubleBackToExit()
         }
@@ -253,22 +259,23 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
 
     //Function to implement the functionality of the buttons inside of the menu in the drawer
     override fun onNavigationItemSelected(menuItem: MenuItem): Boolean {
+        //If there is a recording being made at the moment or an uploading is taking place
+        //The user cannot use the menu to navigate
+        if (recordingIsOnOrVideoIsBeingUploading()) {
+            drawer_layout.closeDrawer(GravityCompat.START)
+            super.showErrorSnackBar(resources.getString(R.string.stop_the_recording_first))
+            return true
+        }
+
         //If the user presses the Choose a Video to Watch button
         when (menuItem.itemId) {
             R.id.nav_choose_video_from_list -> {
-                //If there is no recording being made at the moment or no uploading is taking place
-                //The user can go to the VideoChooserActivity
-                if (noRecordingIsOnOrVideoIsBeingUploading()) {
-                    //Send the user to the Video Chooser Activity screen
-                    startActivity(Intent(this, VideoChooserActivity::class.java))
-                    //Finish this activity so when the user returns here,
-                    //the activity will load from the start
-                    //We need this to load the youtube video property to the ui
-                    finish()
-                //Else a corresponding message will be displayed
-                } else {
-                    super.showErrorSnackBar(resources.getString(R.string.stop_the_recording_first))
-                }
+                //Send the user to the Video Chooser Activity screen
+                startActivity(Intent(this, VideoChooserActivity::class.java))
+                //Finish this activity so when the user returns here,
+                //the activity will load from the start
+                //We need this to load the youtube video property to the ui
+                finish()
             }
             //If the user presses the My Profile button
             R.id.nav_my_profile -> {
@@ -299,16 +306,10 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
     }
 
     //Checks if a video is being recorded or a video is being uploading
-    //If this is the case it returns false else true
-    private fun noRecordingIsOnOrVideoIsBeingUploading(): Boolean {
-        if (btn_capture_video.text.toString() == resources.getString(R.string.start_recording)) {
-            return if (videoData !== null) {
-                videoData?.faceVideoLinked != Constants.VIDEO_DATA_FACE_VIDEO_DEFAULT_VALUE
-            } else {
-                true
-            }
-        }
-        return false
+    //If this is the case it returns true else false
+    private fun recordingIsOnOrVideoIsBeingUploading(): Boolean {
+        return btn_capture_video.text.toString() == resources.getString(R.string.stop_recording)
+                || (videoData?.faceVideoLinked == Constants.VIDEO_DATA_FACE_VIDEO_DEFAULT_VALUE)
     }
 
     //Method the resets the ui and the video related variables
@@ -735,12 +736,9 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                         //and link it with the current user
                         val userHashMap = HashMap<String, Any>()
 
-                        //If the videoData is not null
                         //Update the faceVideoLinked property to show to the face video of the user
                         //that we recorded while the user watched the current video (videoData object)
-                        if (videoData != null) {
-                            videoData!!.faceVideoLinked = uri.toString()
-                        }
+                        videoData?.faceVideoLinked = uri.toString()
 
                         //The field of the current user we want to update is the faceVideos ArrayList<VideoData>()
                         //Because it is an ArrayList, we specify it with the FieldValue.arrayUnion()
@@ -946,6 +944,9 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
                 //call the function that initializes the camera
                 initializeCamera()
             } else {
+                //If a videoData object is created but we do not have the necessary permissions
+                //We set that field in order to indicate that no video upload is taking place
+                videoData?.faceVideoLinked = Constants.NO_FACE_VIDEO_UPLOAD
                 //Display the error snackbar if permissions are not granted
                 //(or) at least one of them
                 super.showErrorSnackBar(resources.getString(R.string.multiple_permissions_denied))
