@@ -29,6 +29,7 @@ Before setting up the app, ensure you have the following:
 
     - Create a YouTube API key and add it to a file named `credentials.properties` in the `assets` folder. The property should be named `youtube.api.key`.
       <br>
+      <br>
 
     ```properties
     youtube.api.key=YOUR_YOUTUBE_API_KEY
