@@ -252,7 +252,6 @@ class MyProfileActivity : BaseActivity() {
         //Create a hashmap object to add the fields that will be updated
         val userHashMap = HashMap<String, Any>()
 
-
         //If the user has uploaded a new image, add its url to the hashmap
         if (profileImageURL.isNotEmpty() && profileImageURL != userDetails.image) {
             userHashMap[Constants.IMAGE] = profileImageURL

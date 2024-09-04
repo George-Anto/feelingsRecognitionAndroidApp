@@ -45,7 +45,7 @@ class SplashActivity : AppCompatActivity() {
                 //Start the MainActivity
                 startActivity(Intent(this@SplashActivity, MainActivity::class.java))
             }
-            //If the id is empty, there is n user for the moment
+            //If the id is empty, there is no user for the moment
             else {
                 //Start the IntroActivity
                 startActivity(Intent(this@SplashActivity, IntroActivity::class.java))

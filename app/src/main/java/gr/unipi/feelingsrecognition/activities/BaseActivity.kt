@@ -18,7 +18,7 @@ import kotlinx.android.synthetic.main.dialog_progress.*
 import java.util.regex.Pattern
 
 //We created this BaseActivity that inherits from the AppCompatActivity to use it as the
-//activity some of the others activities in our app will inherit from
+//activity some of the other activities in our app will inherit from
 //We created some methods in here that can be reused in every child activity
 open class BaseActivity : AppCompatActivity() {
 
