@@ -12,6 +12,13 @@ android {
         viewBinding = true
     }
 
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def newApkName = "feelings-recognition-${variant.versionName}.apk"
+            outputFileName = newApkName
+        }
+    }
+
     defaultConfig {
         applicationId "gr.unipi.feelingsrecognition"
         minSdk 27
